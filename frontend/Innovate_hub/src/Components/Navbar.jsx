@@ -23,7 +23,7 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           {/* Website Name - Left Side */}
           <div className="flex-shrink-0 flex items-center">
-          <img src="./game-development.png" alt="Game Development" className="h-12 w-auto" />
+          <img src="/game-development.png" alt="Game Development" className="h-12 w-auto" />
             <Link to="/" className="text-2xl font-bold text-gray-800 mr-4">
               InnovateHub
             </Link>
@@ -109,7 +109,7 @@ const Navbar = () => {
           <div className="flex items-center space-x-4">
             <div className="flex space-x-2">
               <Link 
-                to="/login"
+                to="/user/login"
                 className="bg-[#A9B5DF] text-white px-4 py-2 rounded-lg 
                 shadow-[3px_3px_6px_#8a9bc4,-3px_-3px_6px_#c8d3fa] 
                 hover:shadow-inner transition-all duration-300 ease-in-out flex items-center"
@@ -118,7 +118,7 @@ const Navbar = () => {
                 Login
               </Link>
               <Link 
-                to="/signup"
+                to="/user/signup"
                 className="bg-[#A9B5DF] text-white px-4 py-2 rounded-lg 
                 shadow-[3px_3px_6px_#8a9bc4,-3px_-3px_6px_#c8d3fa] 
                 hover:shadow-inner transition-all duration-300 ease-in-out flex items-center"

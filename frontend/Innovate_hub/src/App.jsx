@@ -13,10 +13,12 @@ function App() {
         <Navbar />
         <Routes>
           <Route path="/" element={<Landing />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<SignUp />} />
-          {/* You can add more routes as needed */}
-        </Routes>
+          <Route path="/user/login" element={<Login />} />
+          <Route path="/user/signup" element={<SignUp />} />
+          {/* <Route path="/student/dashboard" element={<StudentDashboard />} />
+          <Route path="/faculty/dashboard" element={<FacultyDashboard />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} /> */}
+          </Routes>
       </div>
     </Router>
   );

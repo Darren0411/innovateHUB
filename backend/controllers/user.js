@@ -1,68 +1,135 @@
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-import User from "../models/user";
-import dotenv from "dotenv";
-import nodemailer from "nodemailer";
+import User from '../models/user.js';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
-dotenv.config();
+const JWT_SECRET = 'darren$12345';
 
 
-const assignRole = (email) => {
-    if (email.includes("@admin.com")) return "Admin";
-    if (email.includes("@crce.faculty.in")) return "Faculty";
-    if (email.includes("@crce.edu.in")) return "Student";
-    return "Viewer"; // Default role
-};
-
+//signup
 async function handleUserSignup(req, res) {
-    try {
-        const { name, email, password } = req.body;
+  try {
+      const { role = 'student', name, rollNo, email, password, teacherDetails } = req.body;
 
-        // Check if user already exists
-        const existingUser = await User.findOne({ email });
-        if (existingUser) return res.status(400).json({ message: "User already exists" });
+      const profilePic = req.file ? req.file.path : '/uploads/images/default.png';
+     
+      // Validate required fields
+      if (!name || !email || !password) {
+          return res.status(400).json({ message: "Name, email, and password are required." });
+      }
 
-        // Hash password
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
+      // Prevent admin registration
+      if (role === 'admin') {
+          return res.status(403).json({ message: "Admins cannot sign up. Please contact the administrator." });
+      }
 
-        // Assign role based on email
-        const role = assignRole(email);
+      // Check if user already exists
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+          return res.status(400).json({ message: "User already exists." });
+      }
 
-        // Create new user
-        const newUser = await User.create({
-            name,
-            email,
-            password: hashedPassword,
-            role,
-        });
+      // Hash password
+      const hashedPassword = await bcrypt.hash(password, 12);
 
-        res.status(201).json({ message: "User registered successfully", role });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+      // Prepare user data
+      let userData = {
+          name,
+          email,
+          password: hashedPassword,
+          role,
+          profilePic
+      };
+
+      // Student validation
+      if (role === 'student') {
+          if (!rollNo) {
+              return res.status(400).json({ message: "Roll number is required for students." });
+          }
+          userData.rollNo = rollNo;
+      }
+
+      // Faculty validation
+     // Faculty validation
+     if (role === 'faculty') {
+      if (!teacherDetails) {
+        return res.status(400).json({ message: "Faculty details are required." });
+      }
+    
+      // Check if teacherDetails is already an object or needs parsing
+      let parsedTeacherDetails;
+      if (typeof teacherDetails === 'string') {
+        try {
+          parsedTeacherDetails = JSON.parse(teacherDetails);
+        } catch (error) {
+          return res.status(400).json({ message: "Invalid faculty details format." });
+        }
+      } else {
+        parsedTeacherDetails = teacherDetails; // Already an object
+      }
+    
+      const { department, licenseNumber, instituteName } = parsedTeacherDetails;
+      if (!department || !licenseNumber || !instituteName) {
+        return res.status(400).json({ message: "All faculty details are required." });
+      }
+      userData.teacherDetails = { department, licenseNumber, instituteName };
     }
+
+      // Save user
+      const user = new User(userData);
+      await user.save();
+
+     //send response
+      res.status(201).json({ message: `${role} registered successfully. Please log in.` });
+
+  } catch (error) {
+      console.error("Signup Error:", error);
+      res.status(500).json({ message: "Internal server error." });
+  }
 };
 
+//login
 async function handleUserLogin(req, res) {
-    try {
-        const { email, password } = req.body;
+  try {
+      const { email, password } = req.body;
 
-        // Find user by email
-        const user = await User.findOne({ email });
-        if (!user) return res.status(400).json({ message: "Invalid credentials" });
+      // Validate input
+      if (!email || !password) {
+          return res.status(400).json({ message: "Email and password are required." });
+      }
 
-        // Compare passwords
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+      // Find user
+      const user = await User.findOne({ email });
+      if (!user) {
+          return res.status(401).json({ message: "Invalid credentials." });
+      }
 
-        // Generate JWT token
-        const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
+      // Compare passwords
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+          return res.status(401).json({ message: "Invalid credentials." });
+      }
 
-        res.status(200).json({ message: "Login successful", token, role: user.role });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
+      // Generate JWT token
+      const token = jwt.sign(
+          { userId: user._id, role: user.role, name: user.name },
+          JWT_SECRET,
+      );
 
+      // Store token in an HTTP-only cookie
+      res.cookie("token", token, {
+          httpOnly: true,
+      });
+
+      res.status(200).json({
+          message: "Login successful",
+          user: { id: user._id, name: user.name, email: user.email, role: user.role }
+      });
+
+  } catch (error) {
+      console.error("Login Error:", error);
+      res.status(500).json({ message: "Internal server error." });
+  }
+}
+        
 
 export {handleUserSignup ,handleUserLogin};

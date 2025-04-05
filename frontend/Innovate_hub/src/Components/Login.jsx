@@ -1,14 +1,46 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { User, Lock, Mail } from 'lucide-react';
+import axios from 'axios';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Add login logic here
-    console.log('Login attempted', { email, password });
+    setError('');
+  
+    console.log("🔵 Login form submitted! Email:", email, "Password:", password);
+  
+    try {
+      const response = await axios.post(
+        'http://localhost:9000/user/login',
+        { email, password },
+        { withCredentials: true }
+      );
+  
+      const { user } = response.data;
+      if (user.role === 'student') {
+        navigate('/student/dashboard');
+      } else if (user.role === 'faculty') {
+        navigate('/faculty/dashboard');
+      } else if (user.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/');
+      }
+  
+    } catch (err) {
+      console.error(" Login failed. Error:", err);
+      if (err.response) {
+        setError(err.response.data.message);
+      } else {
+        setError('Something went wrong. Please try again.');
+      }
+    }
   };
 
   return (
@@ -18,6 +50,13 @@ const Login = () => {
           <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">
             Login
           </h2>
+          
+          {error && (
+            <div className="bg-red-100 text-red-700 px-4 py-2 rounded-md mb-4 text-center">
+              {error}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -34,6 +73,7 @@ const Login = () => {
                 required
               />
             </div>
+
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Lock className="text-gray-400" size={20} />
@@ -49,6 +89,7 @@ const Login = () => {
                 required
               />
             </div>
+
             <button
               type="submit"
               className="w-full bg-[#A9B5DF] text-white py-3 rounded-lg 
@@ -60,11 +101,12 @@ const Login = () => {
               Login
             </button>
           </form>
+
           <div className="mt-6 text-center">
             <p className="text-gray-600">
               Don't have an account? {' '}
               <a 
-                href="/signup" 
+                href="/user/signup" 
                 className="text-[#A9B5DF] hover:underline font-semibold"
               >
                 Sign Up

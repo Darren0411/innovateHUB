@@ -1,113 +1,87 @@
-import React, { useState } from 'react';
-import { User, Lock, Mail, AtSign } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const SignUp = () => {
+  const [role, setRole] = useState('student');
   const [fullName, setFullName] = useState('');
+  const [rollNo, setRollNo] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [profilePic, setProfilePic] = useState(null);
+  const [facultyDetails, setFacultyDetails] = useState({ department: '', instituteName: '', licenseNumber: '' });
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    if (role === 'admin') {
+      navigate('/user/login');
+    }
+  }, [role, navigate]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Add signup logic here
+    setError('');
+  
     if (password !== confirmPassword) {
-      alert("Passwords don't match");
+      setError("Passwords don't match");
       return;
     }
-    console.log('Signup attempted', { fullName, email, password });
+  
+    const formData = new FormData();
+    formData.append('role', role);
+    formData.append('name', fullName);
+    formData.append('email', email);
+    formData.append('password', password);
+    if (profilePic) formData.append('profilePic', profilePic);
+    if (role === 'student') {
+      formData.append('rollNo', rollNo);
+    } else if (role === 'faculty') {
+      // Send `teacherDetails` as an object
+      formData.append('teacherDetails', JSON.stringify(facultyDetails));
+    }
+  
+    try {
+      const response = await axios.post('http://localhost:9000/user/signup', formData, {
+        withCredentials: true,
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+  
+      navigate('/user/login');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Signup failed. Try again.');
+    }
   };
+  
 
   return (
     <div className="min-h-screen bg-[#FFF2F2] flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-md">
-        <div className="bg-white rounded-xl p-8 shadow-[6px_6px_12px_#e6d6d6,-6px_-6px_12px_#ffffff]">
-          <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">
-            Sign Up
-          </h2>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <User className="text-gray-400" size={20} />
-              </div>
-              <input
-                type="text"
-                placeholder="Full Name"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                className="w-full px-4 pl-10 py-3 rounded-lg border border-gray-200 
-                focus:outline-none focus:ring-2 focus:ring-[#A9B5DF]
-                shadow-[inset_3px_3px_6px_#e6d6d6,inset_-3px_-3px_6px_#ffffff]"
-                required
-              />
-            </div>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Mail className="text-gray-400" size={20} />
-              </div>
-              <input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 pl-10 py-3 rounded-lg border border-gray-200 
-                focus:outline-none focus:ring-2 focus:ring-[#A9B5DF]
-                shadow-[inset_3px_3px_6px_#e6d6d6,inset_-3px_-3px_6px_#ffffff]"
-                required
-              />
-            </div>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Lock className="text-gray-400" size={20} />
-              </div>
-              <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 pl-10 py-3 rounded-lg border border-gray-200 
-                focus:outline-none focus:ring-2 focus:ring-[#A9B5DF]
-                shadow-[inset_3px_3px_6px_#e6d6d6,inset_-3px_-3px_6px_#ffffff]"
-                required
-              />
-            </div>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <AtSign className="text-gray-400" size={20} />
-              </div>
-              <input
-                type="password"
-                placeholder="Confirm Password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full px-4 pl-10 py-3 rounded-lg border border-gray-200 
-                focus:outline-none focus:ring-2 focus:ring-[#A9B5DF]
-                shadow-[inset_3px_3px_6px_#e6d6d6,inset_-3px_-3px_6px_#ffffff]"
-                required
-              />
-            </div>
-            <button
-              type="submit"
-              className="w-full bg-[#A9B5DF] text-white py-3 rounded-lg 
-              shadow-[3px_3px_6px_#8a9bc4,-3px_-3px_6px_#c8d3fa] 
-              hover:shadow-inner transition-all duration-300 ease-in-out 
-              flex items-center justify-center"
-            >
-              <User className="mr-2" size={20} />
-              Create Account
-            </button>
-          </form>
-          <div className="mt-6 text-center">
-            <p className="text-gray-600">
-              Already have an account? {' '}
-              <a 
-                href="/login" 
-                className="text-[#A9B5DF] hover:underline font-semibold"
-              >
-                Login
-              </a>
-            </p>
-          </div>
-        </div>
+      <div className="w-full max-w-sm bg-white rounded-xl shadow-lg p-6">
+        <h2 className="text-2xl font-semibold text-center mb-4">Sign Up</h2>
+        {error && <div className="bg-red-100 text-red-700 p-2 mb-3 rounded">{error}</div>}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <select value={role} onChange={(e) => setRole(e.target.value)} className="w-full p-2 border rounded-lg">
+            <option value="student">Student</option>
+            <option value="faculty">Faculty</option>
+            <option value="admin">Admin</option>
+          </select>
+          <input type="text" placeholder="Name" value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full p-2 border rounded-lg" required />
+          {role === 'student' && <input type="text" placeholder="Roll No" value={rollNo} onChange={(e) => setRollNo(e.target.value)} className="w-full p-2 border rounded-lg" required />}
+          {role === 'faculty' && (
+            <>
+              <input type="text" placeholder="Dept" value={facultyDetails.department} onChange={(e) => setFacultyDetails({ ...facultyDetails, department: e.target.value })} className="w-full p-2 border rounded-lg" required />
+              <input type="text" placeholder="Institute" value={facultyDetails.instituteName} onChange={(e) => setFacultyDetails({ ...facultyDetails, instituteName: e.target.value })} className="w-full p-2 border rounded-lg" required />
+              <input type="text" placeholder="License Number" value={facultyDetails.licenseNumber} onChange={(e) => setFacultyDetails({ ...facultyDetails, licenseNumber: e.target.value })} className="w-full p-2 border rounded-lg" required />
+            </>
+          )}
+          <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full p-2 border rounded-lg" required />
+          <input type="password" placeholder="Pass" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full p-2 border rounded-lg" required />
+          <input type="password" placeholder="Confirm Pass" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="w-full p-2 border rounded-lg" required />
+          <input type="file" onChange={(e) => setProfilePic(e.target.files[0])} className="w-full p-2 border rounded-lg" />
+          <button type="submit" className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition">Sign Up</button>
+        </form>
+        <p className="mt-4 text-center text-gray-600">Already have an account? <a href="/user/login" className="text-blue-500 hover:underline">Login</a></p>
       </div>
     </div>
   );
