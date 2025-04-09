@@ -2,7 +2,7 @@ import User from '../models/user.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = 'darren$12345';
+const JWT_SECRET = '$darrendsa123';
 
 
 //signup
@@ -10,7 +10,7 @@ async function handleUserSignup(req, res) {
   try {
       const { role = 'student', name, rollNo, email, password, teacherDetails } = req.body;
 
-      const profilePic = req.file ? req.file.path : '/uploads/images/default.png';
+      const profilePic = req.file ? `/uploads/images/${req.file.filename}` : '/uploads/images/default.png';
      
       // Validate required fields
       if (!name || !email || !password) {
@@ -20,6 +20,14 @@ async function handleUserSignup(req, res) {
       // Prevent admin registration
       if (role === 'admin') {
           return res.status(403).json({ message: "Admins cannot sign up. Please contact the administrator." });
+      }
+
+      // Email domain validation
+      if (role === 'student' && !email.endsWith("@crce.edu.in")) {
+          return res.status(400).json({ message: "Please Enter a Authorized email" });
+      }
+      if (role === 'faculty' && !email.endsWith("@frCrce.in")) {
+          return res.status(400).json({ message: "Please Enter a Authorized Email" });
       }
 
       // Check if user already exists
@@ -37,7 +45,7 @@ async function handleUserSignup(req, res) {
           email,
           password: hashedPassword,
           role,
-          profilePic
+          ProfileUrl: profilePic,
       };
 
       // Student validation
@@ -49,36 +57,35 @@ async function handleUserSignup(req, res) {
       }
 
       // Faculty validation
-     // Faculty validation
-     if (role === 'faculty') {
-      if (!teacherDetails) {
-        return res.status(400).json({ message: "Faculty details are required." });
+      if (role === 'faculty') {
+          if (!teacherDetails) {
+              return res.status(400).json({ message: "Faculty details are required." });
+          }
+
+          // Check if teacherDetails is already an object or needs parsing
+          let parsedTeacherDetails;
+          if (typeof teacherDetails === 'string') {
+              try {
+                  parsedTeacherDetails = JSON.parse(teacherDetails);
+              } catch (error) {
+                  return res.status(400).json({ message: "Invalid faculty details format." });
+              }
+          } else {
+              parsedTeacherDetails = teacherDetails; // Already an object
+          }
+
+          const { department, licenseNumber, instituteName } = parsedTeacherDetails;
+          if (!department || !licenseNumber || !instituteName) {
+              return res.status(400).json({ message: "All faculty details are required." });
+          }
+          userData.teacherDetails = { department, licenseNumber, instituteName };
       }
-    
-      // Check if teacherDetails is already an object or needs parsing
-      let parsedTeacherDetails;
-      if (typeof teacherDetails === 'string') {
-        try {
-          parsedTeacherDetails = JSON.parse(teacherDetails);
-        } catch (error) {
-          return res.status(400).json({ message: "Invalid faculty details format." });
-        }
-      } else {
-        parsedTeacherDetails = teacherDetails; // Already an object
-      }
-    
-      const { department, licenseNumber, instituteName } = parsedTeacherDetails;
-      if (!department || !licenseNumber || !instituteName) {
-        return res.status(400).json({ message: "All faculty details are required." });
-      }
-      userData.teacherDetails = { department, licenseNumber, instituteName };
-    }
 
       // Save user
       const user = new User(userData);
       await user.save();
 
-     //send response
+      //send response
       res.status(201).json({ message: `${role} registered successfully. Please log in.` });
 
   } catch (error) {
@@ -86,6 +93,7 @@ async function handleUserSignup(req, res) {
       res.status(500).json({ message: "Internal server error." });
   }
 };
+
 
 //login
 async function handleUserLogin(req, res) {
