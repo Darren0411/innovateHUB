@@ -7,92 +7,117 @@ const JWT_SECRET = '$darrendsa123';
 
 //signup
 async function handleUserSignup(req, res) {
-  try {
-      const { role = 'student', name, rollNo, email, password, teacherDetails } = req.body;
-
+    try {
+      const {
+        role = 'student',
+        name,
+        rollNo,
+        email,
+        password,
+        teacherDetails,
+        skills,
+        githubUrl,
+        linkedinUrl
+      } = req.body;
+  
       const profilePic = req.file ? `/uploads/images/${req.file.filename}` : '/uploads/images/default.png';
-     
+  
       // Validate required fields
       if (!name || !email || !password) {
-          return res.status(400).json({ message: "Name, email, and password are required." });
+        return res.status(400).json({ message: "Name, email, and password are required." });
       }
-
+  
       // Prevent admin registration
       if (role === 'admin') {
-          return res.status(403).json({ message: "Admins cannot sign up. Please contact the administrator." });
+        return res.status(403).json({ message: "Admins cannot sign up. Please contact the administrator." });
       }
-
+  
       // Email domain validation
       if (role === 'student' && !email.endsWith("@crce.edu.in")) {
-          return res.status(400).json({ message: "Please Enter a Authorized email" });
+        return res.status(400).json({ message: "Please Enter a Authorized email" });
       }
       if (role === 'faculty' && !email.endsWith("@frCrce.in")) {
-          return res.status(400).json({ message: "Please Enter a Authorized Email" });
+        return res.status(400).json({ message: "Please Enter a Authorized Email" });
       }
-
+  
       // Check if user already exists
       const existingUser = await User.findOne({ email });
       if (existingUser) {
-          return res.status(400).json({ message: "User already exists." });
+        return res.status(400).json({ message: "User already exists." });
       }
-
+  
       // Hash password
       const hashedPassword = await bcrypt.hash(password, 12);
-
+  
       // Prepare user data
       let userData = {
-          name,
-          email,
-          password: hashedPassword,
-          role,
-          ProfileUrl: profilePic,
+        name,
+        email,
+        password: hashedPassword,
+        role,
+        ProfileUrl: profilePic,
       };
-
-      // Student validation
+  
+      // Student specific fields
       if (role === 'student') {
-          if (!rollNo) {
-              return res.status(400).json({ message: "Roll number is required for students." });
+        if (!rollNo) {
+          return res.status(400).json({ message: "Roll number is required for students." });
+        }
+        userData.rollNo = rollNo;
+  
+        // Parse and attach skills array
+        if (skills) {
+          try {
+            const parsedSkills = typeof skills === 'string' ? JSON.parse(skills) : skills;
+            if (!Array.isArray(parsedSkills)) {
+              return res.status(400).json({ message: "Skills should be an array." });
+            }
+            userData.skills = parsedSkills;
+          } catch (err) {
+            return res.status(400).json({ message: "Invalid skills format." });
           }
-          userData.rollNo = rollNo;
+        }
+  
+        if (githubUrl) userData.githubUrl = githubUrl;
+        if (linkedinUrl) userData.linkedinUrl = linkedinUrl;
       }
-
-      // Faculty validation
+  
+      // Faculty specific fields
       if (role === 'faculty') {
-          if (!teacherDetails) {
-              return res.status(400).json({ message: "Faculty details are required." });
+        if (!teacherDetails) {
+          return res.status(400).json({ message: "Faculty details are required." });
+        }
+  
+        let parsedTeacherDetails;
+        if (typeof teacherDetails === 'string') {
+          try {
+            parsedTeacherDetails = JSON.parse(teacherDetails);
+          } catch (error) {
+            return res.status(400).json({ message: "Invalid faculty details format." });
           }
-
-          // Check if teacherDetails is already an object or needs parsing
-          let parsedTeacherDetails;
-          if (typeof teacherDetails === 'string') {
-              try {
-                  parsedTeacherDetails = JSON.parse(teacherDetails);
-              } catch (error) {
-                  return res.status(400).json({ message: "Invalid faculty details format." });
-              }
-          } else {
-              parsedTeacherDetails = teacherDetails; // Already an object
-          }
-
-          const { department, licenseNumber, instituteName } = parsedTeacherDetails;
-          if (!department || !licenseNumber || !instituteName) {
-              return res.status(400).json({ message: "All faculty details are required." });
-          }
-          userData.teacherDetails = { department, licenseNumber, instituteName };
+        } else {
+          parsedTeacherDetails = teacherDetails;
+        }
+  
+        const { department, licenseNumber, instituteName } = parsedTeacherDetails;
+        if (!department || !licenseNumber || !instituteName) {
+          return res.status(400).json({ message: "All faculty details are required." });
+        }
+        userData.teacherDetails = { department, licenseNumber, instituteName };
       }
-
+  
       // Save user
       const user = new User(userData);
       await user.save();
-
-      //send response
+  
       res.status(201).json({ message: `${role} registered successfully. Please log in.` });
-
-  } catch (error) {
+  
+    } catch (error) {
       console.error("Signup Error:", error);
       res.status(500).json({ message: "Internal server error." });
-  }
-};
+    }
+  };
+  
 
 
 //login

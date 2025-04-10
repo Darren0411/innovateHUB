@@ -23,6 +23,14 @@ router.get("/profile", async (req, res) => {
   res.json(student);
 });
 
+//logout user
+router.get("/logout",(req, res) => {
+  res.clearCookie('token', {
+    httpOnly: true,
+  });
+  return res.status(200).json({ message: 'Logout successful' });
+});
+
 //fetch all the projects created by a particular student
 router.get("/projects",getProjects);
 router.get("/projects/:id", getProjectById);

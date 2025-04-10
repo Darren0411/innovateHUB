@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import StudentNavbar from '../StudendNavbar';
 
 const UploadProject = () => {
   const navigate = useNavigate();
@@ -13,8 +14,66 @@ const UploadProject = () => {
     githubRepoUrl: '',
     deployedUrl: '',
     media: [''],
-    sdgMapping: []
+    sdgMapping: [],
+    techStack: [],
+    category: '' // New category field
   });
+
+  // Project category options
+  const categoryOptions = [
+    'Web Development',
+    'Mobile App',
+    'Game',
+    'Animation',
+    'Video/Documentary',
+    'Creative Art',
+    'Data Visualization',
+    'Machine Learning/AI',
+    'IoT/Hardware',
+    'Educational Tool',
+    'Utility/Tool',
+    'Social Impact',
+    'Other'
+  ];
+
+  // Tech stack options
+  const techStackOptions = [
+    'React',
+    'Angular',
+    'Vue.js',
+    'Node.js',
+    'Express',
+    'MongoDB',
+    'PostgreSQL',
+    'MySQL',
+    'Django',
+    'Flask',
+    'Ruby on Rails',
+    'PHP',
+    'Laravel',
+    'Spring Boot',
+    'ASP.NET',
+    'GraphQL',
+    'AWS',
+    'Firebase',
+    'Docker',
+    'Kubernetes',
+    'TensorFlow',
+    'PyTorch',
+    'Flutter',
+    'React Native',
+    'Swift',
+    'Kotlin',
+    'Go',
+    'Rust',
+    'TypeScript',
+    'Next.js',
+    'Tailwind CSS',
+    'Bootstrap',
+    'Material UI',
+    'Redux',
+    'WebSockets'
+  ];
 
   // SDG options based on UN Sustainable Development Goals
   const sdgOptions = [
@@ -164,6 +223,21 @@ const UploadProject = () => {
     }
   };
 
+  const handleTechStackChange = (e) => {
+    const value = e.target.value;
+    if (formData.techStack.includes(value)) {
+      setFormData({
+        ...formData,
+        techStack: formData.techStack.filter(tech => tech !== value)
+      });
+    } else {
+      setFormData({
+        ...formData,
+        techStack: [...formData.techStack, value]
+      });
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -174,7 +248,6 @@ const UploadProject = () => {
         ...formData,
         media: formData.media.filter(url => url.trim() !== '')
       };
-
       // Make API call to your Express backend
       const response = await axios.post('http://localhost:9000/student/projects', cleanedData, {
         headers: {
@@ -184,7 +257,7 @@ const UploadProject = () => {
       });
 
       console.log('Project submitted successfully:', response.data);
-      navigate('/projects'); // Navigate to projects page on success
+      navigate('/student/dashboard'); // Navigate to projects page on success
     } catch (error) {
       console.error('Error submitting project:', error.response?.data || error.message);
       alert('Failed to submit project. Please try again.');
@@ -195,6 +268,7 @@ const UploadProject = () => {
 
   return (
     <div className="min-h-screen bg-[#FFF2F2] py-12 px-4 sm:px-6 lg:px-8">
+      <StudentNavbar />
       <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
         <div className="bg-blue-100 p-6">
           <h1 className="text-3xl font-bold text-center text-gray-800">Submit Your Project</h1>
@@ -219,6 +293,30 @@ const UploadProject = () => {
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               placeholder="Enter a descriptive title for your project"
             />
+          </div>
+
+          {/* Project Category */}
+          <div>
+            <label htmlFor="category" className="block text-sm font-medium text-gray-700">
+              Project Category
+            </label>
+            <select
+              id="category"
+              name="category"
+              value={formData.category}
+              onChange={handleInputChange}
+              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+            >
+              <option value="">Select a category</option>
+              {categoryOptions.map((category, index) => (
+                <option key={index} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-gray-500">
+              Choose the category that best describes your project
+            </p>
           </div>
 
           {/* GitHub Repository URL */}
@@ -271,6 +369,33 @@ const UploadProject = () => {
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 font-mono text-sm"
               placeholder={isLoadingReadme ? "Loading README from GitHub..." : "Describe your project, the problem it solves, technologies used, etc."}
             />
+          </div>
+
+          {/* Tech Stack Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Tech Stack
+            </label>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-48 overflow-y-auto p-2 border border-gray-300 rounded-md">
+              {techStackOptions.map((tech, index) => (
+                <div key={index} className="flex items-center">
+                  <input
+                    id={`tech-${index}`}
+                    type="checkbox"
+                    value={tech}
+                    checked={formData.techStack.includes(tech)}
+                    onChange={handleTechStackChange}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor={`tech-${index}`} className="ml-2 block text-sm text-gray-700">
+                    {tech}
+                  </label>
+                </div>
+              ))}
+            </div>
+            <p className="mt-1 text-xs text-gray-500">
+              Select the technologies used in your project (optional)
+            </p>
           </div>
 
           {/* Deployed URL (Optional) */}

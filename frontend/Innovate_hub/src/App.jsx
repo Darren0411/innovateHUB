@@ -26,7 +26,7 @@ function App() {
   return (
     <Router>
       <div className="App">
-        <Navbar />
+      <Navbar />
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Landing />} />

@@ -14,6 +14,21 @@ const ProjectSchema = new mongoose.Schema(
 
     sdgMapping: [String], // Example: ['Quality Education', 'Clean Energy']
 
+    techStack: {
+      type: [String], // Array of technologies used
+      default: []     // Not required
+    },
+
+    category: {
+      type: String,   // Project category (e.g., "Web Development", "Game", "Animation")
+      default: ""     // Not required
+    },
+
+    status: {
+      type: String,
+      enum: ["Pending", "Approved", "Rejected"],
+      default: "Pending", // Default to pending until approved by admin
+    },
 
     likes: {
       type: Number,
@@ -36,6 +51,5 @@ const ProjectSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-
-const Project = mongoose.model("Project", ProjectSchema );
+const Project = mongoose.model("Project", ProjectSchema);
 export default Project;

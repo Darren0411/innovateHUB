@@ -6,179 +6,105 @@ import {
   Bell,
   Search,
   Filter,
-  BarChart3,
   FileText,
+  BarChart3,
   GitlabIcon as GitHub,
-  Award,
-  MessageSquare,
-  Star,
   Heart,
   Eye,
 } from "lucide-react"
+import axios from "axios"
 import StudentNavbar from "../StudendNavbar"
 import ProjectCard from "../dashboard/ProjectCard"
 import NotificationPanel from "../dashboard/NotificationPanel"
-import LeaderboardWidget from "../dashboard/Leaderboardwidget"
 
 const StudentDashboard = () => {
   const [projects, setProjects] = useState([])
+  const [filteredProjects, setFilteredProjects] = useState([])
   const [notifications, setNotifications] = useState([])
   const [showNotifications, setShowNotifications] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [statusFilter, setStatusFilter] = useState("")
   const [stats, setStats] = useState({
     totalProjects: 0,
-    completedProjects: 0,
     totalViews: 0,
+    totalLikes: 0,
     averageRating: 0,
   })
-  const [leaderboardProjects, setLeaderboardProjects] = useState([])
+  const [user, setUser] = useState({ name: "" })
 
   useEffect(() => {
-    // Fetch data from backend
+    // Fetch all data when component mounts
     const fetchData = async () => {
       try {
-        // In a real app, these would be actual API calls
-        // For demo, we'll use mock data
+        // Fetch user profile and projects in parallel
+        const [profileResponse, projectsResponse] = await Promise.all([
+          axios.get("http://localhost:9000/student/profile", { withCredentials: true }),
+          axios.get("http://localhost:9000/student/projects", { withCredentials: true })
+        ])
 
-        // Mock projects data
-        const mockProjects = [
-          {
-            id: 1,
-            title: "Eco-Friendly Smart Home System",
-            description:
-              "A sustainable smart home system that reduces energy consumption and promotes eco-friendly living.",
-            image: "/placeholder.svg?height=200&width=300",
-            status: "In Progress",
-            sdgs: [7, 11, 13],
-            rating: 4.5,
-            comments: 12,
-            views: 245,
-            likes: 56,
-            github: "https://github.com/username/eco-smart-home",
-          },
-          {
-            id: 2,
-            title: "Community Water Purification",
-            description: "Low-cost water purification system for communities with limited access to clean water.",
-            image: "/placeholder.svg?height=200&width=300",
-            status: "Completed",
-            sdgs: [3, 6, 10],
-            rating: 4.8,
-            comments: 24,
-            views: 312,
-            likes: 89,
-            github: "https://github.com/username/water-purification",
-          },
-          {
-            id: 3,
-            title: "Educational AR Application",
-            description: "Augmented reality application for interactive learning experiences in STEM subjects.",
-            image: "/placeholder.svg?height=200&width=300",
-            status: "Draft",
-            sdgs: [4, 9],
-            rating: 3.9,
-            comments: 5,
-            views: 120,
-            likes: 32,
-            github: null,
-          },
-        ]
+        // Set user data
+        setUser({
+          name: profileResponse.data.name || "Student",
+          email: profileResponse.data.email,
+          id: profileResponse.data.id
+        })
 
-        // Mock notifications data
-        const mockNotifications = [
-          {
-            id: 1,
-            type: "comment",
-            title: "New Comment",
-            message: "Professor Smith commented on your Eco-Friendly Smart Home System project.",
-            time: "2 hours ago",
-            read: false,
-          },
-          {
-            id: 2,
-            type: "rating",
-            title: "New Rating",
-            message: "Your Community Water Purification project received a 5-star rating!",
-            time: "1 day ago",
-            read: true,
-          },
-          {
-            id: 3,
-            type: "like",
-            title: "Project Liked",
-            message: "Industry expert Jane Doe liked your Educational AR Application.",
-            time: "3 days ago",
-            read: false,
-          },
-          {
-            id: 4,
-            type: "view",
-            title: "Milestone Reached",
-            message: "Your Eco-Friendly Smart Home System project has reached 200 views!",
-            time: "1 week ago",
-            read: true,
-          },
-        ]
+        // Set projects data
+        const projectsData = projectsResponse.data.map(project => ({
+          id: project._id,
+          title: project.title,
+          description: project.description,
+          image: project.imageUrl || "/placeholder.svg",
+          status: project.status || "Pending",
+          sdgs: project.sdgMapping || [],
+          rating: project.averageRating || 0,
+          comments: project.commentsCount || 0,
+          views: project.views || 0,
+          likes: project.likes || 0,
+          github: project.githubRepoUrl || null,
+          createdAt: project.createdAt
+        }))
 
-        // Mock stats data
-        const mockStats = {
-          totalProjects: 3,
-          completedProjects: 1,
-          totalViews: 677,
-          averageRating: 4.4,
-        }
+        setProjects(projectsData)
+        setFilteredProjects(projectsData)
 
-        // Mock leaderboard data
-        const mockLeaderboard = [
-          {
-            id: 101,
-            title: "Renewable Energy Grid",
-            team: "Team Voltage",
-            image: "/placeholder.svg?height=40&width=40",
-            score: 95,
-            change: 2,
-          },
-          {
-            id: 102,
-            title: "Ocean Plastic Recycler",
-            team: "Blue Planet",
-            image: "/placeholder.svg?height=40&width=40",
-            score: 92,
-            change: 0,
-          },
-          {
-            id: 2, // One of our projects
-            title: "Community Water Purification",
-            team: "Team Innovators",
-            image: "/placeholder.svg?height=40&width=40",
-            score: 89,
-            change: 3,
-          },
-          {
-            id: 103,
-            title: "Urban Farming Solution",
-            team: "Green Thumbs",
-            image: "/placeholder.svg?height=40&width=40",
-            score: 85,
-            change: -1,
-          },
-          {
-            id: 1, // One of our projects
-            title: "Eco-Friendly Smart Home System",
-            team: "Team Innovators",
-            image: "/placeholder.svg?height=40&width=40",
-            score: 82,
-            change: 1,
-          },
-        ]
+        // Calculate stats
+        const totalProjects = projectsData.length
+        const totalViews = projectsData.reduce((sum, project) => sum + project.views, 0)
+        const totalLikes = projectsData.reduce((sum, project) => sum + project.likes, 0)
+        const totalRatings = projectsData.reduce((sum, project) => sum + project.rating, 0)
+        const averageRating = totalProjects > 0 ? totalRatings / totalProjects : 0
 
-        setProjects(mockProjects)
-        setNotifications(mockNotifications)
-        setStats(mockStats)
-        setLeaderboardProjects(mockLeaderboard)
-        setLoading(false)
+        setStats({
+          totalProjects,
+          totalViews,
+          totalLikes,
+          averageRating: averageRating.toFixed(1)
+        })
+
+        // Fetch notifications (mock data for now)
+        const notificationsResponse = await axios.get("http://localhost:9000/student/notifications", { 
+          withCredentials: true 
+        }).catch(() => {
+          // Fallback to mock data if endpoint doesn't exist
+          return {
+            data: [
+              {
+                id: 1,
+                type: "comment",
+                title: "New Comment",
+                message: "Professor commented on your project.",
+                time: "2 hours ago",
+                read: false,
+              }
+            ]
+          }
+        })
+
+        setNotifications(notificationsResponse.data)
       } catch (error) {
         console.error("Error fetching dashboard data:", error)
+      } finally {
         setLoading(false)
       }
     }
@@ -186,13 +112,38 @@ const StudentDashboard = () => {
     fetchData()
   }, [])
 
-  const handleMarkAsRead = (notificationId) => {
-    setNotifications((prev) =>
-      prev.map((notification) => (notification.id === notificationId ? { ...notification, read: true } : notification)),
-    )
+  // Filter projects when status filter changes
+  useEffect(() => {
+    if (statusFilter === "") {
+      setFilteredProjects(projects)
+    } else {
+      const filtered = projects.filter(project => project.status === statusFilter)
+      setFilteredProjects(filtered)
+    }
+  }, [statusFilter, projects])
+
+  const handleStatusFilterChange = (e) => {
+    setStatusFilter(e.target.value)
   }
 
-  const unreadCount = notifications.filter((n) => !n.read).length
+  const handleMarkAsRead = async (notificationId) => {
+    try {
+      await axios.patch(
+        `http://localhost:9000/student/notifications/${notificationId}/read`,
+        {},
+        { withCredentials: true }
+      )
+      setNotifications(prev =>
+        prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
+      )
+    } catch (error) {
+      console.error("Error marking notification as read:", error)
+    }
+  }
+
+  const unreadCount = notifications.filter(n => !n.read).length
+  const pendingProjectsCount = projects.filter(p => p.status === "Pending").length
+  const approvedProjectsCount = projects.filter(p => p.status === "Approved").length
 
   return (
     <div className="min-h-screen bg-[#FFF2F2]">
@@ -202,9 +153,9 @@ const StudentDashboard = () => {
         {/* Dashboard Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Student Dashboard</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Welcome, {user.name}</h1>
             <p className="mt-1 text-sm text-gray-500">
-              Manage your projects, track feedback, and showcase your portfolio
+              Manage your projects and track your portfolio performance
             </p>
           </div>
           <div className="mt-4 md:mt-0 flex space-x-3">
@@ -239,18 +190,10 @@ const StudentDashboard = () => {
               <div className="ml-4">
                 <h2 className="text-sm font-medium text-gray-500">Total Projects</h2>
                 <p className="text-2xl font-bold text-gray-900">{stats.totalProjects}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-[6px_6px_12px_#e6d6d6,-6px_-6px_12px_#ffffff] p-6">
-            <div className="flex items-center">
-              <div className="p-3 rounded-full bg-green-100 text-green-600">
-                <Award size={24} />
-              </div>
-              <div className="ml-4">
-                <h2 className="text-sm font-medium text-gray-500">Completed</h2>
-                <p className="text-2xl font-bold text-gray-900">{stats.completedProjects}</p>
+                <div className="flex gap-2 mt-1">
+                  <span className="text-xs text-green-600">{approvedProjectsCount} Approved</span>
+                  <span className="text-xs text-amber-600">{pendingProjectsCount} Pending</span>
+                </div>
               </div>
             </div>
           </div>
@@ -269,171 +212,95 @@ const StudentDashboard = () => {
 
           <div className="bg-white rounded-lg shadow-[6px_6px_12px_#e6d6d6,-6px_-6px_12px_#ffffff] p-6">
             <div className="flex items-center">
+              <div className="p-3 rounded-full bg-red-100 text-red-600">
+                <Heart size={24} />
+              </div>
+              <div className="ml-4">
+                <h2 className="text-sm font-medium text-gray-500">Total Likes</h2>
+                <p className="text-2xl font-bold text-gray-900">{stats.totalLikes}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-[6px_6px_12px_#e6d6d6,-6px_-6px_12px_#ffffff] p-6">
+            <div className="flex items-center">
               <div className="p-3 rounded-full bg-yellow-100 text-yellow-600">
                 <GitHub size={24} />
               </div>
               <div className="ml-4">
                 <h2 className="text-sm font-medium text-gray-500">Avg. Rating</h2>
-                <p className="text-2xl font-bold text-gray-900">{stats.averageRating.toFixed(1)}</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.averageRating}</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Projects Section */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-[6px_6px_12px_#e6d6d6,-6px_-6px_12px_#ffffff] p-6 mb-8">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-800">My Projects</h2>
-                <a href="/projects" className="text-[#A9B5DF] hover:underline text-sm">
-                  View All
-                </a>
-              </div>
+        {/* Projects Section */}
+        <div className="bg-white rounded-lg shadow-[6px_6px_12px_#e6d6d6,-6px_-6px_12px_#ffffff] p-6 mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-gray-800">My Projects</h2>
+          </div>
 
-              {/* Search and Filter */}
-              <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                <div className="relative flex-1">
-                  <input
-                    type="text"
-                    placeholder="Search projects..."
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A9B5DF]"
-                  />
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                </div>
-                <div className="sm:w-40">
-                  <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A9B5DF] appearance-none bg-white">
-                    <option value="">All Status</option>
-                    <option value="draft">Draft</option>
-                    <option value="in-progress">In Progress</option>
-                    <option value="completed">Completed</option>
-                    <option value="published">Published</option>
-                  </select>
-                  <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                    <Filter size={18} className="text-gray-400" />
+          {/* Search and Filter */}
+          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+            <div className="relative flex-1">
+              <input
+                type="text"
+                placeholder="Search projects..."
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A9B5DF]"
+              />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+            </div>
+            <div className="sm:w-40 relative">
+              <select 
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A9B5DF] appearance-none bg-white"
+                value={statusFilter}
+                onChange={handleStatusFilterChange}
+              >
+                <option value="">All Status</option>
+                <option value="Approved">Approved</option>
+                <option value="Pending">Pending</option>
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                <Filter size={18} className="text-gray-400" />
+              </div>
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="animate-pulse">
+                  <div className="bg-gray-200 h-48 rounded-t-xl"></div>
+                  <div className="bg-white p-5 rounded-b-xl">
+                    <div className="h-6 bg-gray-200 rounded mb-4"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-4"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-4 w-3/4"></div>
+                    <div className="flex gap-2 mb-4">
+                      <div className="h-6 w-16 bg-gray-200 rounded"></div>
+                      <div className="h-6 w-16 bg-gray-200 rounded"></div>
+                    </div>
+                    <div className="flex justify-between">
+                      <div className="h-8 w-24 bg-gray-200 rounded"></div>
+                      <div className="h-8 w-24 bg-gray-200 rounded"></div>
+                    </div>
                   </div>
                 </div>
-              </div>
-
-              {loading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {[1, 2].map((i) => (
-                    <div key={i} className="animate-pulse">
-                      <div className="bg-gray-200 h-48 rounded-t-xl"></div>
-                      <div className="bg-white p-5 rounded-b-xl">
-                        <div className="h-6 bg-gray-200 rounded mb-4"></div>
-                        <div className="h-4 bg-gray-200 rounded mb-4"></div>
-                        <div className="h-4 bg-gray-200 rounded mb-4 w-3/4"></div>
-                        <div className="flex gap-2 mb-4">
-                          <div className="h-6 w-16 bg-gray-200 rounded"></div>
-                          <div className="h-6 w-16 bg-gray-200 rounded"></div>
-                        </div>
-                        <div className="flex justify-between">
-                          <div className="h-8 w-24 bg-gray-200 rounded"></div>
-                          <div className="h-8 w-24 bg-gray-200 rounded"></div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredProjects.length > 0 ? (
+                filteredProjects.map((project) => (
+                  <ProjectCard key={project.id} project={project} />
+                ))
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {projects.map((project) => (
-                    <ProjectCard key={project.id} project={project} />
-                  ))}
+                <div className="col-span-3 text-center py-8">
+                  <p className="text-gray-500">No projects found with the selected filter.</p>
                 </div>
               )}
             </div>
-          </div>
-
-          {/* Sidebar */}
-          <div className="lg:col-span-1 space-y-8">
-            {/* Leaderboard Widget */}
-            <LeaderboardWidget projects={leaderboardProjects} />
-
-            {/* Recent Notifications */}
-            <div className="bg-white rounded-lg shadow-[6px_6px_12px_#e6d6d6,-6px_-6px_12px_#ffffff] p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-gray-800">Recent Notifications</h3>
-                <button onClick={() => setShowNotifications(true)} className="text-[#A9B5DF] hover:underline text-sm">
-                  View All
-                </button>
-              </div>
-
-              {loading ? (
-                <div className="space-y-4">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="animate-pulse flex items-start">
-                      <div className="h-8 w-8 bg-gray-200 rounded-full mr-3"></div>
-                      <div className="flex-1">
-                        <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                        <div className="h-3 bg-gray-200 rounded w-3/4"></div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {notifications.slice(0, 3).map((notification) => (
-                    <div
-                      key={notification.id}
-                      className={`p-3 rounded-lg border ${notification.read ? "bg-white" : "bg-blue-50"}`}
-                    >
-                      <div className="flex items-start">
-                        <div className="flex-shrink-0 mr-3">
-                          {notification.type === "comment" && <MessageSquare className="text-blue-500" size={20} />}
-                          {notification.type === "rating" && <Star className="text-yellow-500" size={20} />}
-                          {notification.type === "like" && <Heart className="text-red-500" size={20} />}
-                          {notification.type === "view" && <Eye className="text-green-500" size={20} />}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900">{notification.title}</p>
-                          <p className="text-xs text-gray-500 mt-1">{notification.message}</p>
-                          <p className="text-xs text-gray-400 mt-1">{notification.time}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Quick Links */}
-            <div className="bg-white rounded-lg shadow-[6px_6px_12px_#e6d6d6,-6px_-6px_12px_#ffffff] p-6">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">Quick Links</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <a
-                  href="/portfolio"
-                  className="flex flex-col items-center p-4 bg-[#FFF2F2] rounded-lg hover:shadow-inner transition-all duration-300"
-                >
-                  <FileText size={24} className="text-[#A9B5DF] mb-2" />
-                  <span className="text-sm font-medium text-gray-700">Portfolio</span>
-                </a>
-                <a
-                  href="/github"
-                  className="flex flex-col items-center p-4 bg-[#FFF2F2] rounded-lg hover:shadow-inner transition-all duration-300"
-                >
-                  <GitHub size={24} className="text-[#A9B5DF] mb-2" />
-                  <span className="text-sm font-medium text-gray-700">GitHub</span>
-                </a>
-                <a
-                  href="/leaderboard"
-                  className="flex flex-col items-center p-4 bg-[#FFF2F2] rounded-lg hover:shadow-inner transition-all duration-300"
-                >
-                  <BarChart3 size={24} className="text-[#A9B5DF] mb-2" />
-                  <span className="text-sm font-medium text-gray-700">Leaderboard</span>
-                </a>
-                <a
-                  href="/achievements"
-                  className="flex flex-col items-center p-4 bg-[#FFF2F2] rounded-lg hover:shadow-inner transition-all duration-300"
-                >
-                  <Award size={24} className="text-[#A9B5DF] mb-2" />
-                  <span className="text-sm font-medium text-gray-700">Achievements</span>
-                </a>
-              </div>
-            </div>
-          </div>
+          )}
         </div>
       </div>
 
@@ -450,4 +317,3 @@ const StudentDashboard = () => {
 }
 
 export default StudentDashboard
-
