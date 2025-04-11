@@ -1,19 +1,29 @@
 import Project from '../models/project.js';
+import User from '../models/user.js';
 import Feedback from "../models/feedback.js";
 
  
 async function createProject(req, res) {
+  console.log("reqbody:",req.body);
+
+  const projectImage = req.file ? req.file.path : null;
+
+    // Validate required fields including the image
+    if (!req.file) {
+      return res.status(400).json({ message: "Project image is required" });
+    }
+
   try {
     const {
       title,
       readMe,
       githubRepoUrl,
       deployedUrl = "",
-      media = [],
       sdgMapping = [],
       techStack = [],
       category = ""
     } = req.body;
+    console.log("projectImage:",projectImage);
 
     
 
@@ -28,7 +38,7 @@ async function createProject(req, res) {
       readMe,
       githubRepoUrl,
       deployedUrl,
-      media,
+      projectImage,
       sdgMapping,
       techStack,
       category,
@@ -53,7 +63,8 @@ async function createProject(req, res) {
 
   async function getProjects (req, res) {
   const projects = await Project.find({creator: req.user.userId });
-  res.json(projects);
+  const user = await User.findById(req.user.userId);
+  res.json({ projects,user });
 };
 
  async function getProjectById  (req, res){
@@ -98,6 +109,12 @@ const leaderboard = await Project.find()
     .limit(10);
   res.json(leaderboard);
 };
+
+async function getaProject(req,res) {
+  const project = await Project.findById(req.params.id);
+  console.log("project:",project)
+  res.json(project);
+}
  
 export  {
   createProject,
@@ -109,5 +126,6 @@ export  {
   linkGitHub,
   getFeedbackNotifications,
   getPortfolio,
-  getLeaderboardData
+  getLeaderboardData,
+  getaProject
 };

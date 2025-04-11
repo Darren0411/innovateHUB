@@ -7,6 +7,8 @@ import {checkForAuthentication,restrictTo} from "./middleware/authMiddleware.js"
 import studentRoute from "./routes/studentRoute.js";
 import path from "path";
 import { fileURLToPath } from 'url'
+import Project from "./models/project.js";
+import User from "./models/user.js";
 
 
 const app = express();
@@ -37,12 +39,22 @@ app.use("/student",checkForAuthentication, restrictTo(["student"]), studentRoute
 
 // app.use("/faculty", checkForAuthentication, restrictTo(["faculty"]), facultyRoute);
 // app.use("/admin", checkForAuthentication, restrictTo(["admin"]), adminRoute);
+app.get("/projects/:id",async(req,res)=>{
+  const project = await Project.findById(req.params.id);
+  const user = await User.findById(project.creator);
+  res.json({project,user});
+});
 
+app.get("/projects",async(req,res)=>{
+  const projects = await Project.find({});
+  res.json(projects);
+})
 
 //auth and authorization in react
 app.get("/auth/me", checkForAuthentication, restrictTo(["student"]), (req, res) => {
   res.json({ user: req.user });
 });
+
 
 app.listen(PORT, () => {
     console.log(`server is running on port ${PORT}`);

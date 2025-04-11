@@ -17,6 +17,9 @@ import Leaderboard from "./Student/pages/LeaderBoard";
 import StudentHome from './Student/StudentHome';
 import UploadProject from './Student/pages/UploadProject';
 
+//fetch each project details
+import ProjectDetailsPage from "./Student/pages/ProjectDetailsPage";
+
 // Import ProtectedRoute
 import ProtectedRoute from './Components/ProtectedRoute';
 import Unauthorized from './Components/Unauthorized'; // <-- Create this page
@@ -35,6 +38,8 @@ function App() {
           <Route path="/user/signup" element={<SignUp />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path="/projects/:id" element={<ProjectDetailsPage />} />
+
 
           {/* Protected Student Routes */}
           <Route
@@ -77,6 +82,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+
 
           {/* Future Protected Routes for Faculty/Admin can go here */}
         </Routes>

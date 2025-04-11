@@ -10,7 +10,7 @@ const ProjectSchema = new mongoose.Schema(
 
     deployedUrl: { type: String, default: "" }, // Optional
 
-    media: [String], // Array of image/video URLs
+    projectImage: { type: String, required: true }, // Single project image URL (required)
 
     sdgMapping: [String], // Example: ['Quality Education', 'Clean Energy']
 

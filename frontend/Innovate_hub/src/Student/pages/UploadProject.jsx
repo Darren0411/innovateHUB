@@ -8,15 +8,16 @@ const UploadProject = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingReadme, setIsLoadingReadme] = useState(false);
   const [githubError, setGithubError] = useState('');
+  const [previewImage, setPreviewImage] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
     readMe: '',
     githubRepoUrl: '',
     deployedUrl: '',
-    media: [''],
+    projectImage: null, // Changed from media array to single image
     sdgMapping: [],
     techStack: [],
-    category: '' // New category field
+    category: ''
   });
 
   // Project category options
@@ -36,67 +37,29 @@ const UploadProject = () => {
     'Other'
   ];
 
-  // Tech stack options
+  // Tech stack options (same as before)
   const techStackOptions = [
-    'React',
-    'Angular',
-    'Vue.js',
-    'Node.js',
-    'Express',
-    'MongoDB',
-    'PostgreSQL',
-    'MySQL',
-    'Django',
-    'Flask',
-    'Ruby on Rails',
-    'PHP',
-    'Laravel',
-    'Spring Boot',
-    'ASP.NET',
-    'GraphQL',
-    'AWS',
-    'Firebase',
-    'Docker',
-    'Kubernetes',
-    'TensorFlow',
-    'PyTorch',
-    'Flutter',
-    'React Native',
-    'Swift',
-    'Kotlin',
-    'Go',
-    'Rust',
-    'TypeScript',
-    'Next.js',
-    'Tailwind CSS',
-    'Bootstrap',
-    'Material UI',
-    'Redux',
+    'React', 'Angular', 'Vue.js', 'Node.js', 'Express', 'MongoDB', 
+    'PostgreSQL', 'MySQL', 'Django', 'Flask', 'Ruby on Rails', 'PHP',
+    'Laravel', 'Spring Boot', 'ASP.NET', 'GraphQL', 'AWS', 'Firebase',
+    'Docker', 'Kubernetes', 'TensorFlow', 'PyTorch', 'Flutter',
+    'React Native', 'Swift', 'Kotlin', 'Go', 'Rust', 'TypeScript',
+    'Next.js', 'Tailwind CSS', 'Bootstrap', 'Material UI', 'Redux',
     'WebSockets'
   ];
 
-  // SDG options based on UN Sustainable Development Goals
+  // SDG options (same as before)
   const sdgOptions = [
-    'No Poverty',
-    'Zero Hunger',
-    'Good Health and Well-being',
-    'Quality Education',
-    'Gender Equality',
-    'Clean Water and Sanitation',
-    'Affordable and Clean Energy',
-    'Decent Work and Economic Growth',
-    'Industry, Innovation and Infrastructure',
-    'Reduced Inequalities',
-    'Sustainable Cities and Communities',
-    'Responsible Consumption and Production',
-    'Climate Action',
-    'Life Below Water',
-    'Life on Land',
-    'Peace, Justice and Strong Institutions',
-    'Partnerships for the Goals'
+    'No Poverty', 'Zero Hunger', 'Good Health and Well-being',
+    'Quality Education', 'Gender Equality', 'Clean Water and Sanitation',
+    'Affordable and Clean Energy', 'Decent Work and Economic Growth',
+    'Industry, Innovation and Infrastructure', 'Reduced Inequalities',
+    'Sustainable Cities and Communities', 'Responsible Consumption and Production',
+    'Climate Action', 'Life Below Water', 'Life on Land',
+    'Peace, Justice and Strong Institutions', 'Partnerships for the Goals'
   ];
 
-  // Function to parse GitHub URL into owner and repo
+  // Function to parse GitHub URL into owner and repo (same as before)
   const parseGithubUrl = (url) => {
     try {
       const githubRegex = /github\.com\/([^\/]+)\/([^\/]+)/;
@@ -110,7 +73,7 @@ const UploadProject = () => {
     }
   };
 
-  // Function to fetch README from GitHub
+  // Function to fetch README from GitHub (same as before)
   const fetchReadme = async (url) => {
     setIsLoadingReadme(true);
     setGithubError('');
@@ -130,19 +93,14 @@ const UploadProject = () => {
         );
         
         if (readmeResponse.data && readmeResponse.data.content) {
-          // GitHub API returns base64 encoded content
           const decodedContent = atob(readmeResponse.data.content);
-          
-          // Update form data with readme content
           setFormData(prevData => ({
             ...prevData,
             readMe: decodedContent,
-            // Optionally set the title if it's empty
             title: prevData.title || repoInfo.repo.replace(/-/g, ' ')
           }));
         }
       } catch (readmeError) {
-        // If README.md not found, try readme.md (lowercase)
         try {
           const lowercaseReadmeResponse = await axios.get(
             `https://api.github.com/repos/${repoInfo.owner}/${repoInfo.repo}/contents/readme.md`
@@ -172,7 +130,7 @@ const UploadProject = () => {
     }
   };
 
-  // Debounce function to delay README fetch
+  // Debounce function to delay README fetch (same as before)
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
       if (formData.githubRepoUrl && formData.githubRepoUrl.includes('github.com')) {
@@ -187,25 +145,25 @@ const UploadProject = () => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
     
-    // Clear GitHub error when URL is changed
     if (name === 'githubRepoUrl') {
       setGithubError('');
     }
   };
 
-  const handleMediaChange = (index, value) => {
-    const updatedMedia = [...formData.media];
-    updatedMedia[index] = value;
-    setFormData({ ...formData, media: updatedMedia });
-  };
-
-  const addMediaField = () => {
-    setFormData({ ...formData, media: [...formData.media, ''] });
-  };
-
-  const removeMediaField = (index) => {
-    const updatedMedia = formData.media.filter((_, i) => i !== index);
-    setFormData({ ...formData, media: updatedMedia });
+  // Handle file upload
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Set the file in form data
+      setFormData({ ...formData, projectImage: file });
+      
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSdgChange = (e) => {
@@ -243,21 +201,29 @@ const UploadProject = () => {
     setIsSubmitting(true);
 
     try {
-      // Filter out empty media URLs
-      const cleanedData = {
-        ...formData,
-        media: formData.media.filter(url => url.trim() !== '')
-      };
-      // Make API call to your Express backend
-      const response = await axios.post('http://localhost:9000/student/projects', cleanedData, {
+      // Create FormData object for file upload
+      const formDataToSend = new FormData();
+      formDataToSend.append('title', formData.title);
+      formDataToSend.append('readMe', formData.readMe);
+      formDataToSend.append('githubRepoUrl', formData.githubRepoUrl);
+      formDataToSend.append('deployedUrl', formData.deployedUrl);
+      formDataToSend.append('category', formData.category);
+      formDataToSend.append('projectImage', formData.projectImage);
+      
+      // Append arrays
+      formData.sdgMapping.forEach(sdg => formDataToSend.append('sdgMapping', sdg));
+      formData.techStack.forEach(tech => formDataToSend.append('techStack', tech));
+
+      // Make API call with FormData
+      const response = await axios.post('http://localhost:9000/student/projects', formDataToSend, {
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'multipart/form-data',
         },
         withCredentials: true
       });
 
       console.log('Project submitted successfully:', response.data);
-      navigate('/student/dashboard'); // Navigate to projects page on success
+      navigate('/student/dashboard');
     } catch (error) {
       console.error('Error submitting project:', error.response?.data || error.message);
       alert('Failed to submit project. Please try again.');
@@ -278,7 +244,7 @@ const UploadProject = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* Project Title */}
+          {/* Project Title (same as before) */}
           <div>
             <label htmlFor="title" className="block text-sm font-medium text-gray-700">
               Project Title*
@@ -295,7 +261,7 @@ const UploadProject = () => {
             />
           </div>
 
-          {/* Project Category */}
+          {/* Project Category (same as before) */}
           <div>
             <label htmlFor="category" className="block text-sm font-medium text-gray-700">
               Project Category
@@ -319,7 +285,7 @@ const UploadProject = () => {
             </p>
           </div>
 
-          {/* GitHub Repository URL */}
+          {/* GitHub Repository URL (same as before) */}
           <div>
             <label htmlFor="githubRepoUrl" className="block text-sm font-medium text-gray-700">
               GitHub Repository URL*
@@ -354,7 +320,7 @@ const UploadProject = () => {
             )}
           </div>
 
-          {/* Project Description (ReadMe) */}
+          {/* Project Description (ReadMe) (same as before) */}
           <div>
             <label htmlFor="readMe" className="block text-sm font-medium text-gray-700">
               Project Description* <span className="text-xs text-gray-500">(Auto-populated from GitHub README)</span>
@@ -371,7 +337,7 @@ const UploadProject = () => {
             />
           </div>
 
-          {/* Tech Stack Selection */}
+          {/* Tech Stack Selection (same as before) */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Tech Stack
@@ -398,7 +364,7 @@ const UploadProject = () => {
             </p>
           </div>
 
-          {/* Deployed URL (Optional) */}
+          {/* Deployed URL (Optional) (same as before) */}
           <div>
             <label htmlFor="deployedUrl" className="block text-sm font-medium text-gray-700">
               Deployed URL (Optional)
@@ -414,49 +380,43 @@ const UploadProject = () => {
             />
           </div>
 
-          {/* Media URLs */}
+          {/* Project Image Upload */}
           <div>
-            <div className="flex justify-between items-center mb-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Media (Screenshots/Videos)
-              </label>
-              <button
-                type="button"
-                onClick={addMediaField}
-                className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                Add Media
-              </button>
+            <label htmlFor="projectImage" className="block text-sm font-medium text-gray-700">
+              Project Image*
+            </label>
+            <div className="mt-1 flex items-center">
+              <input
+                type="file"
+                id="projectImage"
+                name="projectImage"
+                accept="image/*"
+                onChange={handleFileChange}
+                required
+                className="block w-full text-sm text-gray-500
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-md file:border-0
+                  file:text-sm file:font-semibold
+                  file:bg-blue-50 file:text-blue-700
+                  hover:file:bg-blue-100"
+              />
             </div>
-            
-            <div className="space-y-3">
-              {formData.media.map((url, index) => (
-                <div key={index} className="flex items-center space-x-2">
-                  <input
-                    type="url"
-                    value={url}
-                    onChange={(e) => handleMediaChange(index, e.target.value)}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                    placeholder="Enter URL for image or video"
-                  />
-                  {formData.media.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeMediaField(index)}
-                      className="inline-flex items-center p-1 border border-transparent text-sm font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                    >
-                      Remove
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
+            {previewImage && (
+              <div className="mt-2">
+                <p className="text-sm text-gray-500 mb-1">Image Preview:</p>
+                <img 
+                  src={previewImage} 
+                  alt="Project preview" 
+                  className="h-40 object-contain border rounded-md"
+                />
+              </div>
+            )}
             <p className="mt-1 text-xs text-gray-500">
-              Add links to images or videos showcasing your project
+              Upload a screenshot or cover image for your project
             </p>
           </div>
 
-          {/* SDG Mapping */}
+          {/* SDG Mapping (same as before) */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Sustainable Development Goals
@@ -483,7 +443,7 @@ const UploadProject = () => {
             </p>
           </div>
 
-          {/* Submit Button */}
+          {/* Submit Button (same as before) */}
           <div className="pt-4">
             <button
               type="submit"
