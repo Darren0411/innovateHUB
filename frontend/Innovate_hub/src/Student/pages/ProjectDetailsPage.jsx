@@ -5,12 +5,10 @@ import {
   Loader2,
   Github,
   Globe,
-  MapPin,
-  Mail,
   User,
-  ChevronRight,
   Eye,
   Heart,
+  ExternalLink,
 } from "lucide-react";
 import StudentNavbar from "../StudendNavbar";
 import { Link } from "react-router-dom";
@@ -19,6 +17,23 @@ const ProjectDetailsPage = () => {
   const { id } = useParams();
   const [data, setData] = useState({ project: null, user: null });
   const [loading, setLoading] = useState(true);
+  const [liked, setLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+
+  // Load liked status from localStorage on component mount
+  useEffect(() => {
+    const likedProjects = JSON.parse(localStorage.getItem('likedProjects') || '{}');
+    setLiked(!!likedProjects[id]);
+  }, [id]);
+
+  // Save liked status to localStorage when it changes
+  useEffect(() => {
+    if (liked !== null) {
+      const likedProjects = JSON.parse(localStorage.getItem('likedProjects'))|| {};
+      likedProjects[id] = liked;
+      localStorage.setItem('likedProjects', JSON.stringify(likedProjects));
+    }
+  }, [liked, id]);
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -27,6 +42,7 @@ const ProjectDetailsPage = () => {
           withCredentials: true,
         });
         setData(res.data);
+        setLikeCount(res.data.project?.likes || 0);
       } catch (error) {
         console.error("Failed to fetch project:", error);
       } finally {
@@ -36,6 +52,35 @@ const ProjectDetailsPage = () => {
 
     fetchProject();
   }, [id]);
+
+  const handleLike = async () => {
+    try {
+      // Optimistic UI update
+      const newLikeCount = liked ? likeCount - 1 : likeCount + 1;
+      setLikeCount(newLikeCount);
+      setLiked(!liked);
+
+      await axios.patch(
+        `http://localhost:9000/projects/${id}/like`,
+        {},
+        { withCredentials: true }
+      );
+
+      // Update the local project data
+      setData(prev => ({
+        ...prev,
+        project: {
+          ...prev.project,
+          likes: newLikeCount
+        }
+      }));
+    } catch (error) {
+      console.error("Failed to like project:", error);
+      // Revert on error
+      setLikeCount(prev => liked ? prev + 1 : prev - 1);
+      setLiked(prev => !prev);
+    }
+  };
 
   if (loading) {
     return (
@@ -140,9 +185,16 @@ const ProjectDetailsPage = () => {
                 <Eye className="h-4 w-4 mr-2" />
                 <span>{project.views || 0} views</span>
               </div>
-              <div className="flex items-center">
-                <Heart className="h-4 w-4 mr-2 text-red-500" />
-                <span>{project.likes || 0} likes</span>
+              <div 
+                className="flex items-center cursor-pointer hover:text-red-500 transition-colors"
+                onClick={handleLike}
+              >
+                <Heart 
+                  className={`h-4 w-4 mr-2 transition-all duration-200 ${
+                    liked ? 'text-red-500 fill-red-500 scale-110' : 'text-gray-600'
+                  }`} 
+                />
+                <span>{likeCount} likes</span>
               </div>
               {project.githubRepoUrl && (
                 <a
@@ -156,6 +208,21 @@ const ProjectDetailsPage = () => {
                 </a>
               )}
             </div>
+
+            {/* View Project Button - Only shown if deployedUrl exists */}
+            {project.deployedUrl && (
+              <div className="mb-6">
+                <a
+                  href={project.deployedUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center px-4 py-2 bg-[#A9B5DF] text-white rounded-md hover:bg-[#8f9fd1] transition-colors"
+                >
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  View Project
+                </a>
+              </div>
+            )}
           </div>
 
           {/* Sidebar with Project Details */}

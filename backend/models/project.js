@@ -40,6 +40,11 @@ const ProjectSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    
+    views: {
+      type: Number,
+      default: 0
+    },
 
     feedback: [
       {

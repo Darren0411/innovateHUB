@@ -4,7 +4,6 @@ import Feedback from "../models/feedback.js";
 
  
 async function createProject(req, res) {
-  console.log("reqbody:",req.body);
 
   const projectImage = req.file ? req.file.path : null;
 
@@ -23,7 +22,7 @@ async function createProject(req, res) {
       techStack = [],
       category = ""
     } = req.body;
-    console.log("projectImage:",projectImage);
+
 
     
 
@@ -112,7 +111,6 @@ const leaderboard = await Project.find()
 
 async function getaProject(req,res) {
   const project = await Project.findById(req.params.id);
-  console.log("project:",project)
   res.json(project);
 }
  

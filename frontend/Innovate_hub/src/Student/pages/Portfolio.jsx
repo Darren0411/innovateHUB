@@ -1,7 +1,13 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { GitlabIcon as GitHub, Globe, Mail, MapPin, FileText, Download } from "lucide-react"
+import { useParams } from "react-router-dom";
+import {
+  GitlabIcon as GitHub,
+  Globe,
+  Mail,
+  Download
+} from "lucide-react"
 import axios from "axios"
 import StudentNavbar from "../StudendNavbar"
 import ProjectCard from "../dashboard/ProjectCard"
@@ -10,15 +16,21 @@ const Portfolio = () => {
   const [student, setStudent] = useState(null)
   const [projects, setProjects] = useState([])
   const [loading, setLoading] = useState(true)
+  const params = useParams()
+  const id = params?.id;
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get("http://localhost:9000/student/projects", {
+        const endpoint = id
+          ? `http://localhost:9000/portfolio/${id}`
+          : `http://localhost:9000/student/projects`
+  
+        const response = await axios.get(endpoint, {
           withCredentials: true,
-        });
-
-        const { projects, user } = response.data;
+        })
+  
+        const { projects, user } = response.data
 
         const userData = {
           name: user.name,
@@ -29,12 +41,13 @@ const Portfolio = () => {
           github: user.githubUrl || null,
           linkedin: user.linkedinUrl || null,
           skills: user.skills || [],
-        };
-
+        }
+  
         const projectsData = projects.map((project) => ({
           id: project._id,
           title: project.title,
-          description: project.readMe?.substring(0, 100) + "..." || "No description",
+          description:
+            project.readMe?.substring(0, 100) + "..." || "No description",
           image: project.projectImage
             ? `http://localhost:9000${
                 project.projectImage.startsWith("/") ? "" : "/"
@@ -47,21 +60,27 @@ const Portfolio = () => {
           views: project.views || 0,
           likes: project.likes || 0,
           github: project.githubRepoUrl || null,
-        }));
-
-        setStudent(userData);
-        setProjects(projectsData);
+        }))
+  
+        setStudent(userData)
+        setProjects(projectsData)
       } catch (error) {
-        console.error("Error fetching portfolio data:", error);
+        console.error("Error fetching portfolio data:", error)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
-    fetchData();
-  }, []);
+    }
+  
+    fetchData()
+  }, [id]) 
+  
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center text-lg">Loading portfolio...</div>
+    return (
+      <div className="min-h-screen flex items-center justify-center text-lg">
+        Loading portfolio...
+      </div>
+    )
   }
 
   return (
@@ -91,15 +110,17 @@ const Portfolio = () => {
                 <p className="text-sm text-gray-500">Roll No: {student?.rollNo}</p>
               </div>
 
-              <div className="mt-4 md:mt-0 flex space-x-3">
-                <a
-                  href="/portfolio/download"
-                  className="bg-[#A9B5DF] text-white px-4 py-2 rounded-lg shadow-[3px_3px_6px_#8a9bc4,-3px_-3px_6px_#c8d3fa] hover:shadow-inner transition-all duration-300 ease-in-out flex items-center"
-                >
-                  <Download size={18} className="mr-2" />
-                  Export PDF
-                </a>
-              </div>
+              {!id && (
+                <div className="mt-4 md:mt-0 flex space-x-3">
+                  <a
+                    href="/portfolio/download"
+                    className="bg-[#A9B5DF] text-white px-4 py-2 rounded-lg shadow-[3px_3px_6px_#8a9bc4,-3px_-3px_6px_#c8d3fa] hover:shadow-inner transition-all duration-300 ease-in-out flex items-center"
+                  >
+                    <Download size={18} className="mr-2" />
+                    Export PDF
+                  </a>
+                </div>
+              )}
             </div>
 
             <div className="flex flex-wrap gap-4 mb-6 text-gray-600">
@@ -149,8 +170,8 @@ const Portfolio = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {projects.map((project) => (
-              <ProjectCard 
-                key={project.id} 
+              <ProjectCard
+                key={project.id}
                 project={project}
                 imageUrl={project.image}
               />
@@ -162,4 +183,4 @@ const Portfolio = () => {
   )
 }
 
-export default Portfolio;
+export default Portfolio

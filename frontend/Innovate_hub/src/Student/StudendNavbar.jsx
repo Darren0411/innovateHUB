@@ -148,20 +148,6 @@ const StudentNavbar = () => {
 
                 {isProfileDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-10">
-                    <Link
-                      to="/profile"
-                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-[#A9B5DF] hover:text-white"
-                    >
-                      <User className="mr-2" size={16} />
-                      Profile
-                    </Link>
-                    <Link
-                      to="/settings"
-                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-[#A9B5DF] hover:text-white"
-                    >
-                      <Settings className="mr-2" size={16} />
-                      Settings
-                    </Link>
                     <div className="border-t border-gray-100 my-1"></div>
                     <button
                       onClick={handleLogout}

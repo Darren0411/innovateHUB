@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import {
   Plus,
@@ -46,22 +44,31 @@ const StudentDashboard = () => {
           id: userData.id,
         })
 
-        const projectsData = projectsRes.data.projects.map((project) => ({
-          id: project._id,
-          title: project.title,
-          description: project.readMe?.substring(0, 100) + '...' || "No description",
-          image: project.projectImage
-            ? `http://localhost:9000/${project.projectImage.replace(/\\/g, "/")}`
-            : "/placeholder.svg",
-          status: project.status || "Pending",
-          sdgs: project.sdgMapping || [],
-          rating: project.averageRating || 0,
-          comments: project.feedback?.length || 0,
-          views: project.views || 0,
-          likes: project.likes || 0,
-          github: project.githubRepoUrl || null,
-          createdAt: project.createdAt,
-        }))
+        const projectsData = projectsRes.data.projects.map((project) => {
+          // Extract first 3 words from SDG strings for badges
+          const sdgBadges = project.sdgMapping?.map(sdg => 
+            sdg.split(' ').slice(0, 3).join(' ')
+          ) || [];
+        
+          return {
+            id: project._id,
+            title: project.title,
+            description: project.readMe?.substring(0, 100) + '...' || "No description",
+            image: project.projectImage
+              ? `http://localhost:9000/${project.projectImage.replace(/\\/g, "/")}`
+              : "/placeholder.svg",
+            status: project.status || "Pending",
+            sdgs: sdgBadges, // Modified to show shortened SDG names
+            rating: project.averageRating || 0,
+            comments: project.feedback?.length || 0,
+            views: project.views || 0,
+            likes: project.likes || 0,
+            github: project.githubRepoUrl || null,
+            techStack: project.techStack || [], // Added tech stack
+            category: project.category || "Uncategorized", // Added category
+            createdAt: project.createdAt,
+          };
+        });
 
         setProjects(projectsData)
         setFilteredProjects(projectsData)
@@ -206,7 +213,8 @@ const StudentDashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredProjects.length > 0 ? (
               filteredProjects.map(project => (
-                <ProjectCard key={project.id} project={project} />
+         
+                <ProjectCard project={project} key={project.id} showEditButton={true} />
               ))
             ) : (
               <div className="col-span-3 text-center py-8 text-gray-500">No projects found.</div>

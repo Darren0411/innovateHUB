@@ -11,7 +11,7 @@ function checkForAuthentication(req, res, next) {
 
     try {
         const decoded = jwt.verify(token, SECRET);
-        req.user = decoded; // decoded token contains user id, role, etc.
+        req.user = decoded;
         next();
     } catch (err) {
         console.error("Token verification failed:", err.message);

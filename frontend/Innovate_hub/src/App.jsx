@@ -23,6 +23,7 @@ import ProjectDetailsPage from "./Student/pages/ProjectDetailsPage";
 // Import ProtectedRoute
 import ProtectedRoute from './Components/ProtectedRoute';
 import Unauthorized from './Components/Unauthorized'; // <-- Create this page
+import EditProjectPage from './Student/pages/EditProject';
 
 function App() {
 
@@ -39,6 +40,7 @@ function App() {
           <Route path="/unauthorized" element={<Unauthorized />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/projects/:id" element={<ProjectDetailsPage />} />
+          <Route path="/portfolio/:id" element={<Portfolio />} />
 
 
           {/* Protected Student Routes */}
@@ -79,6 +81,14 @@ function App() {
             element={
               <ProtectedRoute roles={["student"]}>
                 <UploadProject />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/project/:id"
+            element={
+              <ProtectedRoute roles={["student"]}>
+              <EditProjectPage/>
               </ProtectedRoute>
             }
           />

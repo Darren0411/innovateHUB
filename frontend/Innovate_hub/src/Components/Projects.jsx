@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import ProjectCard from "../Student/dashboard/ProjectCard";
+import StudentNavbar from "../Student/StudendNavbar";
 
 const Projects = () => {
   const [projects, setProjects] = useState([]);
@@ -13,8 +14,6 @@ const Projects = () => {
   const fetchApprovedProjects = async () => {
     try {
       const res = await axios.get("http://localhost:9000/projects");
-
-      // ✅ Fix: Access array directly (no `res.data.projects`)
       const allProjects = res.data || [];
 
       const approvedProjects = allProjects.filter(
@@ -48,7 +47,9 @@ const Projects = () => {
   );
 
   return (
-    <div className="bg-[#FFF2F2] min-h-screen py-12 px-6">
+    <>
+    <StudentNavbar/>
+    <div className="bg-[#FFF2F2] min-h-screen py-12 px-6 pt-20">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-10">
           <h1 className="text-4xl font-bold text-gray-800 mb-2">
@@ -69,7 +70,7 @@ const Projects = () => {
         {filteredProjects.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredProjects.map((project) => (
-              <ProjectCard key={project.id} project={project} />
+              <ProjectCard project={project} key={project.id} showEditButton={false} />
             ))}
           </div>
         ) : (
@@ -77,6 +78,7 @@ const Projects = () => {
         )}
       </div>
     </div>
+    </>
   );
 };
 

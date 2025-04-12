@@ -56,7 +56,7 @@ router.get("/projects/:id", getProjectById);
 //fetch a particular project
 router.get("/projects/:id",getaProject)
 
-// Update and delete projects
+// Update a project
 router.put("/projects/:id", updateProject);
 router.delete("/projects/:id", deleteProject);
 
@@ -72,7 +72,5 @@ router.get("/notifications", getFeedbackNotifications);
 // Portfolio
 router.get("/portfolio", getPortfolio);
 
-// Leaderboard
-router.get("/leaderboard", getLeaderboardData);
 
 export default router;

@@ -6,10 +6,25 @@ import {
   Heart,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
-const ProjectCard = ({ project }) => {
+const ProjectCard = ({ project, showEditButton }) => {
   const navigate = useNavigate(); // ✅ Moved inside
 
+  const handleViewDetails = async () => {
+    try {
+      // Increment view count before navigating
+      await axios.patch(
+        `http://localhost:9000/${project.id}/view`,
+        {},
+        { withCredentials: true }
+      );
+      navigate(`/projects/${project.id}`);
+    } catch (error) {
+      console.error("Failed to increment view count:", error);
+      navigate(`/projects/${project.id}`); // Still navigate even if view count fails
+    }
+  };
 
   return (
     <div className="bg-white rounded-xl shadow-[6px_6px_12px_#e6d6d6,-6px_-6px_12px_#ffffff] overflow-hidden transition-all duration-300 hover:shadow-[8px_8px_16px_#e6d6d6,-8px_-8px_16px_#ffffff] transform hover:-translate-y-1">
@@ -76,17 +91,25 @@ const ProjectCard = ({ project }) => {
         )}
 
         {/* Actions */}
-        <div className="flex justify-between mt-4">
-          <button
-            className="bg-[#A9B5DF] text-white px-4 py-2 rounded-lg shadow-[3px_3px_6px_#8a9bc4,-3px_-3px_6px_#c8d3fa] hover:shadow-inner transition-all duration-300 ease-in-out text-sm"
-            onClick={() => navigate(`student/project/edit/${project.id}`)}
-          >
-            Edit Project
-          </button>
+        <div
+          className={`flex mt-4 ${
+            showEditButton ? "justify-between" : "justify-end"
+          }`}
+        >
+          {showEditButton && (
+            <button
+              className="bg-[#A9B5DF] text-white px-4 py-2 rounded-lg shadow-[3px_3px_6px_#8a9bc4,-3px_-3px_6px_#c8d3fa] hover:shadow-inner transition-all duration-300 ease-in-out text-sm"
+              onClick={() => navigate(`/student/project/${project.id}`)}
+            >
+              Edit Project
+            </button>
+          )}
 
           <button
-            className="bg-white text-gray-700 px-4 py-2 rounded-lg shadow-[3px_3px_6px_#e6d6d6,-3px_-3px_6px_#ffffff] hover:shadow-inner transition-all duration-300 ease-in-out text-sm"
-            onClick={() => navigate(`/projects/${project.id}`)}
+            className={`bg-white text-gray-700 px-4 py-2 rounded-lg shadow-[3px_3px_6px_#e6d6d6,-3px_-3px_6px_#ffffff] hover:shadow-inner transition-all duration-300 ease-in-out text-sm ${
+              !showEditButton ? "w-full" : ""
+            }`}
+            onClick={handleViewDetails}
           >
             View Details
           </button>
