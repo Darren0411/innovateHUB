@@ -3,9 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
-  User,
-  Menu,
-  X,
   Home,
   BookOpen,
   Award,
@@ -13,43 +10,43 @@ import {
   BarChart3,
   Settings,
   LogOut,
+  Clock,
+  Menu,
+  X,
 } from "lucide-react";
 import axios from "axios";
 
-const StudentNavbar = () => {
+const AdminNavbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
-  const [studentProfile, setStudentProfile] = useState(null);
+  const [adminProfile, setAdminProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchStudentProfile = async () => {
+    const fetchAdminProfile = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:9000/student/profile",
+          "http://localhost:9000/admin/profile",
           {
             withCredentials: true,
           }
         );
 
         if (response.data) {
-          setStudentProfile({
-            name: response.data.name || "Student",
-            team: response.data.team || "",
+          setAdminProfile({
+            name: response.data.name || "Admin",
             avatar: response.data.ProfileUrl
               ? `http://localhost:9000${response.data.ProfileUrl}`
               : "/placeholder.svg",
           });
         }
       } catch (err) {
-        console.error("Error fetching student profile:", err);
+        console.error("Error fetching admin profile:", err);
         setError("Failed to load profile");
-        setStudentProfile({
-          name: "Student",
-          team: "",
+        setAdminProfile({
+          name: "Admin",
           avatar: "/placeholder.svg",
         });
       } finally {
@@ -57,12 +54,12 @@ const StudentNavbar = () => {
       }
     };
 
-    fetchStudentProfile();
+    fetchAdminProfile();
   }, []);
 
   const handleLogout = async () => {
     try {
-      await axios.get("http://localhost:9000/student/logout", {
+      await axios.get("http://localhost:9000/admin/logout", {
         withCredentials: true,
       });
       navigate("/");
@@ -83,25 +80,31 @@ const StudentNavbar = () => {
               className="h-12 w-auto"
             />
             <Link
-              to="/student/dashboard"
+              to="/admin/dashboard"
               className="text-2xl font-bold text-gray-800 mr-4"
             >
               InnovateHub
             </Link>
+            <span className="text-sm bg-[#A9B5DF] text-white px-2 py-0.5 rounded">
+              Admin
+            </span>
           </div>
 
           {/* Desktop Links */}
           <div className="hidden md:flex space-x-4 absolute left-1/2 transform -translate-x-1/2">
             {[
-              { to: "/student/dashboard", icon: Home, label: "Dashboard" },
+              { to: "admin/dashboard", icon: Home, label: "Dashboard" },
               { to: "/projects", icon: BookOpen, label: "Projects" },
-              { to: "/student/portfolio", icon: FileText, label: "Portfolio" },
+              {
+                to: "/admin/pending-projects",
+                icon: Clock,
+                label: "Pending Projects",
+              },
               {
                 to: "/leaderboard",
                 icon: BarChart3,
                 label: "Leaderboard",
               },
-             
             ].map(({ to, icon: Icon, label }) => (
               <Link
                 key={to}
@@ -130,14 +133,12 @@ const StudentNavbar = () => {
                 >
                   <div className="flex flex-col items-end">
                     <span className="text-sm font-medium text-gray-700">
-                      {studentProfile?.name}
+                      {adminProfile?.name}
                     </span>
-                    <span className="text-xs text-gray-500">
-                      {studentProfile?.team}
-                    </span>
+                    <span className="text-xs text-gray-500">Admin</span>
                   </div>
                   <img
-                    src={studentProfile?.avatar}
+                    src={adminProfile?.avatar}
                     alt="Profile"
                     className="h-12 w-12 rounded-full object-cover border-2 border-[#A9B5DF] shadow-[3px_3px_6px_#e6d6d6,-3px_-3px_6px_#ffffff]"
                     onError={(e) => {
@@ -149,6 +150,14 @@ const StudentNavbar = () => {
                 {isProfileDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-10">
                     <div className="border-t border-gray-100 my-1"></div>
+                    <Link
+                      to="/admin/settings"
+                      className="w-full text-left flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-[#A9B5DF] hover:text-white"
+                      onClick={() => setIsProfileDropdownOpen(false)}
+                    >
+                      <Settings className="mr-2" size={16} />
+                      Settings
+                    </Link>
                     <button
                       onClick={handleLogout}
                       className="w-full text-left flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-[#A9B5DF] hover:text-white"
@@ -178,22 +187,29 @@ const StudentNavbar = () => {
           <div className="md:hidden">
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-[#FFF2F2] rounded-lg shadow-[6px_6px_12px_#e6d6d6,-6px_-6px_12px_#ffffff]">
               {[
-                { to: "/student/dashboard", icon: Home, label: "Dashboard" },
-                { to: "/student/projects", icon: BookOpen, label: "My Projects" },
-                { to: "/student/portfolio", icon: FileText, label: "Portfolio" },
+                { to: "/admin/dashboard", icon: Home, label: "Dashboard" },
+                { to: "/admin/projects", icon: BookOpen, label: "Projects" },
                 {
-                  to: "/student/leaderboard",
+                  to: "/admin/pending-projects",
+                  icon: Clock,
+                  label: "Pending Projects",
+                },
+                {
+                  to: "/admin/leaderboard",
                   icon: BarChart3,
                   label: "Leaderboard",
                 },
-                { to: "/achievements", icon: Award, label: "Achievements" },
-                { to: "/profile", icon: User, label: "Profile" },
-                { to: "/settings", icon: Settings, label: "Settings" },
+                {
+                  to: "/admin/settings",
+                  icon: Settings,
+                  label: "Settings",
+                },
               ].map(({ to, icon: Icon, label }) => (
                 <Link
                   key={to}
                   to={to}
                   className="text-gray-800 hover:bg-[#A9B5DF] hover:text-white block px-3 py-2 rounded-lg flex items-center"
+                  onClick={() => setIsOpen(false)}
                 >
                   <Icon className="mr-2" size={20} />
                   {label}
@@ -215,4 +231,4 @@ const StudentNavbar = () => {
   );
 };
 
-export default StudentNavbar;
+export default AdminNavbar;

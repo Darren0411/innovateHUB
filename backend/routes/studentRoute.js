@@ -13,7 +13,6 @@ import {
   linkGitHub,
   getFeedbackNotifications,
   getPortfolio,
-  getLeaderboardData,
   getaProject
 } from "../controllers/student.js";
 

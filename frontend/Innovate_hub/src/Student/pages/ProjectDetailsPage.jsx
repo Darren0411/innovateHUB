@@ -282,22 +282,6 @@ const ProjectDetailsPage = () => {
                   </div>
                 </div>
 
-                {project.deployedUrl && (
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-500">
-                      Live Demo
-                    </h4>
-                    <a
-                      href={project.deployedUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[#A9B5DF] hover:underline flex items-center"
-                    >
-                      <Globe className="h-4 w-4 mr-2" />
-                      Visit Site
-                    </a>
-                  </div>
-                )}
 
                 <div>
                   <h4 className="text-sm font-medium text-gray-500">

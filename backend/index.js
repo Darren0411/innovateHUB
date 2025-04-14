@@ -9,6 +9,7 @@ import path from "path";
 import { fileURLToPath } from 'url'
 import Project from "./models/project.js";
 import User from "./models/user.js";
+import adminRoute from "./routes/adminRoute.js"
 
 
 const app = express();
@@ -36,9 +37,12 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 // Define routes
 app.use("/user", userRoute);
 app.use("/student",checkForAuthentication, restrictTo(["student"]), studentRoute);
+app.use("/admin", checkForAuthentication, restrictTo(["admin"]), adminRoute);
 
 // app.use("/faculty", checkForAuthentication, restrictTo(["faculty"]), facultyRoute);
-// app.use("/admin", checkForAuthentication, restrictTo(["admin"]), adminRoute);
+
+
+
 
 app.get("/projects/:id",async(req,res)=>{
   const project = await Project.findById(req.params.id);
@@ -75,7 +79,7 @@ app.patch('/:id/view', async (req, res) => {
   }
 });
 
-
+//fetch all the projects
 app.get("/projects",async(req,res)=>{
   const projects = await Project.find({});
   res.json(projects);
@@ -89,7 +93,7 @@ app.get("/portfolio/:id",async(req,res)=>{
 });
 
 //auth and authorization in react
-app.get("/auth/me", checkForAuthentication, restrictTo(["student"]), (req, res) => {
+app.get("/auth/me", checkForAuthentication, (req, res) => {
   res.json({ user: req.user });
 });
 

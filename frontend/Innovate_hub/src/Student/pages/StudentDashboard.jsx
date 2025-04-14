@@ -201,6 +201,7 @@ const StudentDashboard = () => {
               <option value="">All Status</option>
               <option value="Approved">Approved</option>
               <option value="Pending">Pending</option>
+              <option value="Rejected">Rejected</option>
             </select>
             <Filter className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
           </div>
