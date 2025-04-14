@@ -13,8 +13,6 @@ const Login = () => {
     e.preventDefault();
     setError('');
   
-    console.log("🔵 Login form submitted! Email:", email, "Password:", password);
-  
     try {
       const response = await axios.post(
         'http://localhost:9000/user/login',

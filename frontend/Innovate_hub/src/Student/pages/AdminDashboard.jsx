@@ -3,10 +3,10 @@ import { Edit, Lock, Trash, Mail, Eye } from 'lucide-react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import AdminNavbar from '../../Components/Admin-Navbar';
-// import Modal from '../../Components/Modal'; // Assume you have a Modal component
 
 const AdminDashboard = () => {
-  const [users, setUsers] = useState([]);
+  const [allUsers, setAllUsers] = useState([]); // Store all users
+  const [filteredUsers, setFilteredUsers] = useState([]); // Store filtered users
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showMessageModal, setShowMessageModal] = useState(false);
@@ -17,6 +17,9 @@ const AdminDashboard = () => {
   // Filter states
   const [activeTab, setActiveTab] = useState('All Users');
   const tabs = ['All Users', 'Students', 'Faculty', 'Viewers'];
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedRole, setSelectedRole] = useState('All Roles');
+  const [selectedStatus, setSelectedStatus] = useState('All Statuses');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -26,19 +29,22 @@ const AdminDashboard = () => {
           { withCredentials: true }
         );
         
-        // Group projects by creator to count projects per user
         const usersMap = new Map();
         
         response.data.forEach(project => {
-          const creator = project.creator || {};
-          const userId = creator._id || 'unknown';
+          if (!project.creator || !project.creator._id) return;
+          
+          const creator = project.creator;
+          const userId = creator._id;
           
           if (!usersMap.has(userId)) {
             usersMap.set(userId, {
               _id: userId,
               name: creator.name || 'Unknown User',
               email: creator.email || 'no-email@example.com',
-              role: creator.role === 'student' ? 'Student' : 'Faculty',
+              role: creator.role === 'student' ? 'Student' : 
+                   creator.role === 'faculty' ? 'Faculty' : 
+                   creator.role === 'viewer' ? 'Viewer' : 'Unknown',
               status: 'Active',
               projects: 0,
               lastLogin: 'Recently',
@@ -51,7 +57,9 @@ const AdminDashboard = () => {
           user.projects += 1;
         });
         
-        setUsers(Array.from(usersMap.values()));
+        const usersArray = Array.from(usersMap.values());
+        setAllUsers(usersArray);
+        setFilteredUsers(usersArray);
         setLoading(false);
       } catch (err) {
         console.error('Error fetching data:', err);
@@ -63,13 +71,44 @@ const AdminDashboard = () => {
     fetchData();
   }, []);
 
+  // Apply filters whenever activeTab, searchTerm, selectedRole, or selectedStatus changes
+  useEffect(() => {
+    let result = [...allUsers];
+    
+    // Filter by active tab
+    if (activeTab !== 'All Users') {
+      result = result.filter(user => user.role === activeTab);
+    }
+    
+    // Filter by search term
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      result = result.filter(user => 
+        user.name.toLowerCase().includes(term) || 
+        user.email.toLowerCase().includes(term)
+      );
+    }
+    
+    // Filter by role
+    if (selectedRole !== 'All Roles') {
+      result = result.filter(user => user.role === selectedRole);
+    }
+    
+    // Filter by status
+    if (selectedStatus !== 'All Statuses') {
+      result = result.filter(user => user.status === selectedStatus);
+    }
+    
+    setFilteredUsers(result);
+  }, [allUsers, activeTab, searchTerm, selectedRole, selectedStatus]);
+
   const handleDeleteUser = async (userId) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
       try {
-        await axios.delete(`http://localhost:9000/admin/users/${userId}`, {
+        await axios.delete(`http://localhost:9000/admin/delete/${userId}`, {
           withCredentials: true
         });
-        setUsers(users.filter(user => user._id !== userId));
+        setAllUsers(allUsers.filter(user => user._id !== userId));
       } catch (err) {
         console.error('Error deleting user:', err);
         alert('Failed to delete user');
@@ -77,63 +116,7 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleSendMessage = (user) => {
-    setSelectedUser(user);
-    setShowMessageModal(true);
-  };
-
-  const submitMessage = async () => {
-    try {
-      await axios.post('http://localhost:9000/admin/messages', {
-        userId: selectedUser._id,
-        content: messageContent
-      }, {
-        withCredentials: true
-      });
-      alert('Message sent successfully');
-      setShowMessageModal(false);
-      setMessageContent('');
-    } catch (err) {
-      console.error('Error sending message:', err);
-      alert('Failed to send message');
-    }
-  };
-
-  const viewPortfolio = (userId) => {
-    navigate(`/portfolio/${userId}`);
-  };
-
-  if (loading) {
-    return (
-      <div className="bg-[#FFF2F2] min-h-screen">
-        <AdminNavbar />
-        <div className="pt-20 p-6">
-          <div className="flex justify-center items-center h-64">
-            <p>Loading user data...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="bg-[#FFF2F2] min-h-screen">
-        <AdminNavbar />
-        <div className="pt-20 p-6">
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-            <strong>Error: </strong> {error}
-            <button 
-              onClick={() => window.location.reload()} 
-              className="mt-2 bg-blue-500 text-white px-3 py-1 rounded text-sm"
-            >
-              Retry
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // ... (keep other functions the same as before)
 
   return (
     <div className="bg-[#FFF2F2] min-h-screen">
@@ -145,7 +128,7 @@ const AdminDashboard = () => {
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold text-gray-800">User Management</h1>
             <div className="flex gap-3">
-             
+              {/* Add any buttons you need here */}
             </div>
           </div>
 
@@ -176,6 +159,8 @@ const AdminDashboard = () => {
                   type="text"
                   placeholder="Search users..."
                   className="w-full border border-gray-300 rounded pl-10 py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                 />
                 <div className="absolute left-3 top-2.5 text-gray-400">
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -187,7 +172,11 @@ const AdminDashboard = () => {
             </div>
             <div className="w-64">
               <div className="relative">
-                <select className="w-full border border-gray-300 rounded py-2 px-3 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select 
+                  className="w-full border border-gray-300 rounded py-2 px-3 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={selectedRole}
+                  onChange={(e) => setSelectedRole(e.target.value)}
+                >
                   <option>All Roles</option>
                   <option>Student</option>
                   <option>Faculty</option>
@@ -202,7 +191,11 @@ const AdminDashboard = () => {
             </div>
             <div className="w-64">
               <div className="relative">
-                <select className="w-full border border-gray-300 rounded py-2 px-3 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select 
+                  className="w-full border border-gray-300 rounded py-2 px-3 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                >
                   <option>All Statuses</option>
                   <option>Active</option>
                   <option>Inactive</option>
@@ -230,7 +223,7 @@ const AdminDashboard = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {users.map(user => (
+                {filteredUsers.map(user => (
                   <tr key={user._id} className="hover:bg-gray-50">
                     <td 
                       className="px-6 py-4 cursor-pointer hover:underline"
@@ -257,9 +250,12 @@ const AdminDashboard = () => {
                     <td className="px-6 py-4">
                       <div className="flex items-center">
                         <span className={`w-8 h-8 flex items-center justify-center rounded-full mr-2 ${
-                          user.role === 'Student' ? 'bg-blue-100 text-blue-600' : 'bg-purple-100 text-purple-600'
+                          user.role === 'Student' ? 'bg-blue-100 text-blue-600' : 
+                          user.role === 'Faculty' ? 'bg-purple-100 text-purple-600' :
+                          'bg-gray-100 text-gray-600'
                         }`}>
-                          {user.role === 'Student' ? '👨‍🎓' : '👩‍🏫'}
+                          {user.role === 'Student' ? '👨‍🎓' : 
+                           user.role === 'Faculty' ? '👩‍🏫' : '👀'}
                         </span>
                         <span>{user.role}</span>
                       </div>

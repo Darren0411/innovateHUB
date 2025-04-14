@@ -10,6 +10,8 @@ import { fileURLToPath } from 'url'
 import Project from "./models/project.js";
 import User from "./models/user.js";
 import adminRoute from "./routes/adminRoute.js"
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import SYSTEM_PROMPT from "./sysPrompts.js";
 
 
 const app = express();
@@ -19,6 +21,9 @@ const __dirname = path.dirname(__filename)
 connectMongodb("mongodb://localhost:27017/innovateHUB")
 .then((e)=>console.log("mongodb connected"));
 
+
+//Gemini API Key
+const genAI = new GoogleGenerativeAI("AIzaSyBaxGYUSZqeGOrEj_mPQ94kCuuQ58YBn28");
 
 app.use(express.json());
 app.use(cookieParser());
@@ -43,6 +48,38 @@ app.use("/admin", checkForAuthentication, restrictTo(["admin"]), adminRoute);
 
 
 
+//ChatBot Route
+app.post('/api/chatbot', async (req, res) => {
+  try {
+    const { message } = req.body;
+    
+    // Get the model
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+    // Start chat session with system prompt
+    const chat = model.startChat({
+      history: [{
+        role: "user",
+        parts: [{ text: SYSTEM_PROMPT }]
+      }, {
+        role: "model",
+        parts: [{ text: "Understood. I'm ready to assist users with the Creative Coding Showcase Platform." }]
+      }],
+      generationConfig: {
+        maxOutputTokens: 1000,
+      },
+    });
+    const result = await chat.sendMessage(message);
+    const response = await result.response;
+    const text = response.text();
+
+    res.json({ response: text });
+  } catch (error) {
+    console.error("Chatbot error:", error);
+    res.status(500).json({ error: "Failed to get chatbot response" });
+  }
+});
+
 
 app.get("/projects/:id",async(req,res)=>{
   const project = await Project.findById(req.params.id);
@@ -66,7 +103,6 @@ app.patch("/projects/:id/like", async (req, res) => {
 
 //calculate views
 app.patch('/:id/view', async (req, res) => {
-  console.log("hi");
   try {
     const project = await Project.findByIdAndUpdate(
       req.params.id,

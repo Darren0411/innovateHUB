@@ -93,7 +93,7 @@ const AdminNavbar = () => {
           {/* Desktop Links */}
           <div className="hidden md:flex space-x-4 absolute left-1/2 transform -translate-x-1/2">
             {[
-              { to: "admin/dashboard", icon: Home, label: "Dashboard" },
+              { to: "/admin/dashboard", icon: Home, label: "Dashboard" },
               { to: "/projects", icon: BookOpen, label: "Projects" },
               {
                 to: "/admin/pending-projects",
@@ -150,14 +150,7 @@ const AdminNavbar = () => {
                 {isProfileDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-10">
                     <div className="border-t border-gray-100 my-1"></div>
-                    <Link
-                      to="/admin/settings"
-                      className="w-full text-left flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-[#A9B5DF] hover:text-white"
-                      onClick={() => setIsProfileDropdownOpen(false)}
-                    >
-                      <Settings className="mr-2" size={16} />
-                      Settings
-                    </Link>
+                   
                     <button
                       onClick={handleLogout}
                       className="w-full text-left flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-[#A9B5DF] hover:text-white"

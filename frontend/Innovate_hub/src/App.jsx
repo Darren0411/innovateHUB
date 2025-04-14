@@ -9,6 +9,9 @@ import SignUp from './Components/SignUp';
 import Projects from './Components/Projects';
 import Footer from './Components/Footer';
 
+//import chatBot
+import ChatBot from './Components/Chatbot';
+
 // Import student components
 import StudentDashboard from "./Student/pages/StudentDashboard";
 import ProjectCreate from "./Student/pages/ProjectCreate";
@@ -159,6 +162,7 @@ function App() {
 
           {/* Future Protected Routes for Faculty/Admin can go here */}
         </Routes>
+        <ChatBot/>
        <Footer />
       </div>
     </Router>

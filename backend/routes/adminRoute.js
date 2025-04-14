@@ -40,6 +40,19 @@ router.patch('/projects/reject/:id', async (req, res) => {
       res.status(500).json({ message: 'Failed to approve project.' });
     }
   });
+
+  //delete a user
+  router.delete("/delete/:id",async(req,res)=>{
+    try {
+        await Project.deleteMany({ creator: req.params.id });
+        await User.findByIdAndDelete(req.params.id);
+        
+        res.status(200).json({ message: "User and their projects deleted successfully" });
+    } catch (error) {
+      console.error("Delete error:", error);
+      res.status(500).json({ message: "failed to delete the user" });
+    }
+  });
   
 
   // Logout admin
