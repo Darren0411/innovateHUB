@@ -1,8 +1,7 @@
 import express from "express";
 import multer from 'multer';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import User from "../models/user.js";
+import Feedback from "../models/feedback.js";
 import {
   createProject,
   getProjects,
@@ -13,7 +12,8 @@ import {
   linkGitHub,
   getFeedbackNotifications,
   getPortfolio,
-  getaProject
+  getaProject,
+  handleMarkasRead
 } from "../controllers/student.js";
 
 
@@ -66,7 +66,11 @@ router.put("/projects/:id/sdg", mapToSDG);
 router.post("/projects/:id/github", linkGitHub);
 
 // Feedback Notifications
-router.get("/notifications", getFeedbackNotifications);
+router.get("/feedback",getFeedbackNotifications);
+
+//mark as read
+router.patch("/feedback/:feedbackId/read",handleMarkasRead);
+
 
 // Portfolio
 router.get("/portfolio", getPortfolio);

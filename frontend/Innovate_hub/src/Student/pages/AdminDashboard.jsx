@@ -116,7 +116,32 @@ const AdminDashboard = () => {
     }
   };
 
-  // ... (keep other functions the same as before)
+  const viewPortfolio = (userId) => {
+    navigate(`/portfolio/${userId}`);
+  };
+
+  const handleSendMessage = (user) => {
+    setSelectedUser(user);
+    setMessageContent('');
+    setShowMessageModal(true);
+  };
+
+  const submitMessage = async () => {
+    if (!selectedUser || !messageContent.trim()) return;
+    
+    try {
+      await axios.post('http://localhost:9000/admin/send-message', {
+        userId: selectedUser._id,
+        message: messageContent
+      }, { withCredentials: true });
+      
+      alert('Message sent successfully!');
+      setShowMessageModal(false);
+    } catch (err) {
+      console.error('Error sending message:', err);
+      alert('Failed to send message');
+    }
+  };
 
   return (
     <div className="bg-[#FFF2F2] min-h-screen">
@@ -308,7 +333,7 @@ const AdminDashboard = () => {
 
       {/* Message Modal */}
       {showMessageModal && (
-        <Modal onClose={() => setShowMessageModal(false)}>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg w-full max-w-md">
             <h3 className="text-lg font-medium mb-4">
               Send message to {selectedUser?.name}
@@ -335,7 +360,7 @@ const AdminDashboard = () => {
               </button>
             </div>
           </div>
-        </Modal>
+        </div>
       )}
     </div>
   );

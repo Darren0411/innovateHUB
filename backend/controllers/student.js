@@ -92,10 +92,26 @@ async function mapToSDG (req, res) {
   res.json(updated);
 };
 
- async function getFeedbackNotifications (req, res) {
-  const feedback = await Feedback.find({ toUser: req.user._id });
-  res.json(feedback);
-};
+async function getFeedbackNotifications(req, res) {
+  try {
+    const feedbacks = await Feedback.find({ user: req.user.userId })
+      .populate({
+        path: "project",
+        select: "title status" 
+      })
+      .populate("sender", "name") 
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(feedbacks);
+  } catch (error) {
+    console.error("Error fetching feedback:", error);
+    res.status(500).json({ 
+      message: "Error fetching feedback",
+      error: error.message 
+    });
+  }
+}
+
 
  async function getPortfolio (req, res) {
   const projects = await Project.find({ creator: req.user._id });
@@ -114,6 +130,24 @@ async function getaProject(req,res) {
   res.json(project);
 }
  
+async function handleMarkasRead(req,res) {
+  try {
+    const feedback = await Feedback.findByIdAndUpdate(
+      req.params.feedbackId,
+      { read: true },
+      { new: true }
+    );
+    
+    if (!feedback) {
+      return res.status(404).json({ message: "Feedback not found" });
+    }
+
+    res.status(200).json(feedback);
+  } catch (error) {
+    res.status(500).json({ message: "Error marking feedback as read" });
+  }
+}
+
 export  {
   createProject,
   getProjects,
@@ -125,5 +159,6 @@ export  {
   getFeedbackNotifications,
   getPortfolio,
   getLeaderboardData,
-  getaProject
+  getaProject,
+  handleMarkasRead
 };

@@ -14,6 +14,11 @@ const PendingProjects = () => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [selectedProjectId, setSelectedProjectId] = useState(null);
+  const [feedbackType, setFeedbackType] = useState(null);
+  const [feedbackText, setFeedbackText] = useState("");
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -24,7 +29,7 @@ const PendingProjects = () => {
           "http://localhost:9000/admin/pending-projects", 
           { withCredentials: true }
         );
-        
+
         if (response.data && Array.isArray(response.data)) {
           setProjects(response.data.map(project => ({
             ...project,
@@ -48,31 +53,26 @@ const PendingProjects = () => {
     fetchPendingProjects();
   }, []);
 
-  const handleApprove = async (projectId) => {
-    try {
-      await axios.patch(
-        `http://localhost:9000/admin/projects/approve/${projectId}`,
-        {},
-        { withCredentials: true }
-      );
-      setProjects((prev) => prev.filter((project) => project.id !== projectId));
-    } catch (err) {
-      console.error("Approval failed:", err);
-      setError(err.response?.data?.message || "Approval failed");
-    }
+  const openFeedbackModal = (projectId, type) => {
+    setSelectedProjectId(projectId);
+    setFeedbackType(type);
+    setFeedbackText("");
+    setShowFeedbackModal(true);
   };
 
-  const handleReject = async (projectId) => {
+  const handleFeedbackSubmit = async () => {
+    if (!selectedProjectId || !feedbackType) return;
     try {
       await axios.patch(
-        `http://localhost:9000/admin/projects/reject/${projectId}`,
-        {},
+        `http://localhost:9000/admin/projects/${feedbackType}/${selectedProjectId}`,
+        { feedback: feedbackText },
         { withCredentials: true }
       );
-      setProjects((prev) => prev.filter((project) => project.id !== projectId));
+      setProjects((prev) => prev.filter((project) => project.id !== selectedProjectId));
+      setShowFeedbackModal(false);
     } catch (err) {
-      console.error("Rejection failed:", err);
-      setError(err.response?.data?.message || "Rejection failed");
+      console.error(`${feedbackType} failed:`, err);
+      setError(err.response?.data?.message || `${feedbackType} failed`);
     }
   };
 
@@ -131,10 +131,9 @@ const PendingProjects = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
-           
           </div>
         </div>
-        
+
         {projects.length === 0 ? (
           <div className="bg-white p-8 rounded-lg shadow-sm text-center">
             <svg className="h-16 w-16 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -217,19 +216,19 @@ const PendingProjects = () => {
 
                   <div className="grid grid-cols-2 gap-3">
                     <button
-                      onClick={() => handleReject(project.id)}
+                      onClick={() => openFeedbackModal(project.id, "reject")}
                       className="bg-red-500 text-white py-2 rounded text-sm hover:bg-red-600 transition-colors flex items-center justify-center"
                     >
                       Reject
                     </button>
                     <button
-                      onClick={() => handleApprove(project.id)}
+                      onClick={() => openFeedbackModal(project.id, "approve")}
                       className="bg-green-500 text-white py-2 rounded text-sm hover:bg-green-600 transition-colors flex items-center justify-center"
                     >
                       Approve
                     </button>
                   </div>
-                  
+
                   <button
                     onClick={() => navigate(`/projects/${project.id}`)}
                     className="mt-3 w-full bg-gray-100 text-gray-700 py-2 rounded text-sm hover:bg-gray-200 transition-colors"
@@ -239,6 +238,35 @@ const PendingProjects = () => {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {showFeedbackModal && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+            <div className="bg-white rounded-lg p-6 shadow-lg w-full max-w-md">
+              <h3 className="text-lg font-semibold mb-4">Provide Feedback</h3>
+              <textarea
+                className="w-full border border-gray-300 rounded-lg p-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                rows="4"
+                placeholder="Write your feedback here..."
+                value={feedbackText}
+                onChange={(e) => setFeedbackText(e.target.value)}
+              ></textarea>
+              <div className="flex justify-end space-x-2">
+                <button
+                  onClick={() => setShowFeedbackModal(false)}
+                  className="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleFeedbackSubmit}
+                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                >
+                  Submit
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
