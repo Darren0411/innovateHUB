@@ -5,6 +5,7 @@ import {
   Menu, 
   X, 
   Home, 
+  Info,
   BookOpen, 
   Contact2, 
   Award 
@@ -44,23 +45,34 @@ const Navbar = () => {
               <Home className="mr-2" size={20} />
               Home
             </Link>
-            <a 
-              href="#projects"
-              onClick={scrollToProjects}
-              className="text-gray-800 hover:bg-[#A9B5DF] hover:text-white px-3 py-2 rounded-lg transition-all duration-300 ease-in-out 
-              shadow-[3px_3px_6px_#e6d6d6,-3px_-3px_6px_#ffffff] hover:shadow-inner flex items-center cursor-pointer"
-            >
-              <BookOpen className="mr-2" size={20} />
-              Projects
-            </a>
+        
             <Link 
+              to="/projects" 
+              className="text-gray-800 hover:bg-[#A9B5DF] hover:text-white px-3 py-2 rounded-lg transition-all duration-300 ease-in-out 
+              shadow-[3px_3px_6px_#e6d6d6,-3px_-3px_6px_#ffffff] hover:shadow-inner flex items-center"
+            >
+              <Home className="mr-2" size={20} />
+              Projects
+            </Link>
+
+    
+            {/* <Link 
               to="/leaderboard" 
               className="text-gray-800 hover:bg-[#A9B5DF] hover:text-white px-3 py-2 rounded-lg transition-all duration-300 ease-in-out 
               shadow-[3px_3px_6px_#e6d6d6,-3px_-3px_6px_#ffffff] hover:shadow-inner flex items-center"
             >
               <Award className="mr-2" size={20} />
               Leaderboard
+            </Link> */}
+            <Link 
+              to="/about" 
+              className="text-gray-800 hover:bg-[#A9B5DF] hover:text-white px-3 py-2 rounded-lg transition-all duration-300 ease-in-out 
+              shadow-[3px_3px_6px_#e6d6d6,-3px_-3px_6px_#ffffff] hover:shadow-inner flex items-center"
+            >
+              <Info className="mr-2" size={20} />
+              About Us
             </Link>
+
             <Link 
               to="/contact" 
               className="text-gray-800 hover:bg-[#A9B5DF] hover:text-white px-3 py-2 rounded-lg transition-all duration-300 ease-in-out 

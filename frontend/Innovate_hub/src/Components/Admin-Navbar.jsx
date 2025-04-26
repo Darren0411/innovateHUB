@@ -12,6 +12,7 @@ import {
   LogOut,
   Clock,
   Menu,
+  Info,
   X,
 } from "lucide-react";
 import axios from "axios";
@@ -72,26 +73,30 @@ const AdminNavbar = () => {
     <nav className="fixed top-0 left-0 w-full z-50 bg-[#FFF2F2] shadow-[6px_6px_12px_#e6d6d6,-6px_-6px_12px_#ffffff]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo and Brand */}
-          <div className="flex-shrink-0 flex items-center">
-            <img
-              src="/game-development.png"
-              alt="Game Development"
-              className="h-12 w-auto"
-            />
-            <Link
-              to="/admin/dashboard"
-              className="text-2xl font-bold text-gray-800 mr-4"
-            >
-              InnovateHub
-            </Link>
-            <span className="text-sm bg-[#A9B5DF] text-white px-2 py-0.5 rounded">
-              Admin
-            </span>
+          {/* Left Section - Logo and Brand (with more padding) */}
+          <div className="flex-shrink-0 flex items-center pr-8"> {/* Added pr-8 for right padding */}
+            <div className="flex items-center">
+              <img
+                src="/game-development.png"
+                alt="Game Development"
+                className="h-12 w-auto"
+              />
+              <div className="ml-2 flex flex-col"> {/* Changed to flex-col for better alignment */}
+                <Link
+                  to="/admin/dashboard"
+                  className="text-2xl font-bold text-gray-800"
+                >
+                  InnovateHub
+                </Link>
+                <span className="text-xs bg-[#A9B5DF] text-white px-2 py-0.5 rounded self-start mt-1"> {/* Added self-start and mt-1 */}
+                  Admin
+                </span>
+              </div>
+            </div>
           </div>
 
-          {/* Desktop Links */}
-          <div className="hidden md:flex space-x-4 absolute left-1/2 transform -translate-x-1/2">
+          {/* Desktop Links - Centered with adjusted positioning */}
+          <div className="hidden md:flex space-x-4 mx-auto px-8"> {/* Changed to mx-auto and added px-8 */}
             {[
               { to: "/admin/dashboard", icon: Home, label: "Dashboard" },
               { to: "/projects", icon: BookOpen, label: "Projects" },
@@ -150,7 +155,7 @@ const AdminNavbar = () => {
                 {isProfileDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-10">
                     <div className="border-t border-gray-100 my-1"></div>
-                   
+
                     <button
                       onClick={handleLogout}
                       className="w-full text-left flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-[#A9B5DF] hover:text-white"

@@ -72,7 +72,7 @@ app.post('/api/chatbot', async (req, res) => {
       },
     });
     const result = await chat.sendMessage(message);
-    const response = await result.response;
+    const response = result.response;
     const text = response.text();
 
     res.json({ response: text });
@@ -83,7 +83,7 @@ app.post('/api/chatbot', async (req, res) => {
 });
 
 
-app.get("/projects/:id",async(req,res)=>{
+app.get("/projects/:id",checkForAuthentication,async(req,res)=>{
   const project = await Project.findById(req.params.id);
   const user = await User.findById(project.creator);
   res.json({project,user});
@@ -104,7 +104,7 @@ app.patch("/projects/:id/like", async (req, res) => {
 });
 
 //calculate views
-app.patch('/:id/view', async (req, res) => {
+app.patch('/:id/view',checkForAuthentication, async (req, res) => {
   try {
     const project = await Project.findByIdAndUpdate(
       req.params.id,
@@ -190,6 +190,19 @@ app.get("/leaderboard", async (req, res) => {
       message: "Internal server error",
       error: error.message
     });
+  }
+});
+
+//top projects
+app.get("/top-projects", async (req, res) => {
+  try {
+    const projects = await Project.find({})
+      .sort({ rating: -1, likes: -1, views: -1 })
+      .limit(4);
+    res.json(projects);
+  } catch (error) {
+    console.error("Error fetching top projects:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 });
 

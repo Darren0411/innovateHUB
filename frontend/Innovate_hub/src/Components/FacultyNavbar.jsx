@@ -9,6 +9,7 @@ import {
   Menu,
   X,
   LogOut,
+  Info,
   Home,
 } from "lucide-react";
 import axios from "axios";
@@ -28,9 +29,12 @@ const FacultyNavbar = () => {
   useEffect(() => {
     const fetchFacultyProfile = async () => {
       try {
-        const response = await axios.get("http://localhost:9000/faculty/profile", {
-          withCredentials: true,
-        });
+        const response = await axios.get(
+          "http://localhost:9000/faculty/profile",
+          {
+            withCredentials: true,
+          }
+        );
 
         const data = response.data;
 
@@ -67,6 +71,7 @@ const FacultyNavbar = () => {
     { to: "/faculty/students", icon: Users, label: "Students" },
     { to: "/faculty/allFeedbacks", icon: MessageSquare, label: "Feedback" },
     { to: "/projects", icon: BookOpen, label: "Projects" },
+    {to: "/about",icon: Info,label: "About Us"},
     { to: "/leaderboard", icon: BarChart3, label: "Leaderboard" },
   ];
 
@@ -114,7 +119,9 @@ const FacultyNavbar = () => {
             ) : (
               <div className="relative">
                 <button
-                  onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                  onClick={() =>
+                    setIsProfileDropdownOpen(!isProfileDropdownOpen)
+                  }
                   className="flex items-center space-x-3 focus:outline-none"
                 >
                   <div className="flex flex-col items-end">

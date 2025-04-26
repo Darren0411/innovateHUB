@@ -8,6 +8,8 @@ import Login from './Components/Login';
 import SignUp from './Components/SignUp';
 import Projects from './Components/Projects';
 import Footer from './Components/Footer';
+import AboutPage from './Student/pages/About';
+import Contact from './Student/pages/Contact';
 
 //import chatBot
 import ChatBot from './Components/Chatbot';
@@ -54,6 +56,8 @@ function App() {
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/projects/:id" element={<ProjectDetailsPage />} />
           <Route path="/portfolio/:id" element={<Portfolio />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<Contact />} />
 
 
           {/* Protected Student Routes */}
