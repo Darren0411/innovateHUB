@@ -1,107 +1,190 @@
-import React from "react";
-import { Link, useLocation } from "react-router-dom";
-import { BookOpen, Users, Award, MessageSquare } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import {
+  BookOpen,
+  Users,
+  Award,
+  BarChart3,
+  MessageSquare,
+  Menu,
+  X,
+  LogOut,
+  Home,
+} from "lucide-react";
+import axios from "axios";
 
 const FacultyNavbar = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [facultyProfile, setFacultyProfile] = useState({
+    name: "Faculty",
+    role: "Faculty Coordinator",
+    avatar: "/placeholder.svg",
+  });
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
   const location = useLocation();
-  const isActive = (path) => location.pathname === path;
+
+  useEffect(() => {
+    const fetchFacultyProfile = async () => {
+      try {
+        const response = await axios.get("http://localhost:9000/faculty/profile", {
+          withCredentials: true,
+        });
+
+        const data = response.data;
+
+        setFacultyProfile({
+          name: data.name || "Faculty",
+          role: "Faculty Coordinator",
+          avatar: data.ProfileUrl
+            ? `http://localhost:9000${data.ProfileUrl}`
+            : "/placeholder.svg",
+        });
+      } catch (err) {
+        console.error("Error fetching faculty profile:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFacultyProfile();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await axios.get("http://localhost:9000/faculty/logout", {
+        withCredentials: true,
+      });
+      navigate("/");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
+
+  const navItems = [
+    { to: "/faculty/dashboard", icon: Home, label: "Dashboard" },
+    { to: "/faculty/students", icon: Users, label: "Students" },
+    { to: "/faculty/allFeedbacks", icon: MessageSquare, label: "Feedback" },
+    { to: "/projects", icon: BookOpen, label: "Projects" },
+    { to: "/leaderboard", icon: BarChart3, label: "Leaderboard" },
+  ];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 bg-white shadow-sm z-50">
-      <div className="container mx-auto flex items-center justify-between px-4 py-2">
-        <div className="flex items-center">
-          <Link to="/faculty/dashboard" className="flex items-center">
-            <div className="bg-blue-100 p-2 rounded-md mr-3">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="text-blue-600"
-              >
-                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
-                <polyline points="16 6 12 2 8 6" />
-                <line x1="12" y1="2" x2="12" y2="15" />
-              </svg>
-            </div>
-            <span className="text-xl font-bold">InnovateHub</span>
-          </Link>
-        </div>
-
-        <div className="hidden md:flex space-x-6">
-          <Link
-            to="/faculty/dashboard"
-            className={`flex items-center px-3 py-2 rounded-md transition-colors ${
-              isActive("/faculty/dashboard")
-                ? "bg-blue-50 text-blue-600"
-                : "text-gray-700 hover:bg-gray-100"
-            }`}
-          >
-            <BookOpen size={18} className="mr-2" />
-            Projects
-          </Link>
-          <Link
-            to="/faculty/students"
-            className={`flex items-center px-3 py-2 rounded-md transition-colors ${
-              isActive("/faculty/students")
-                ? "bg-blue-50 text-blue-600"
-                : "text-gray-700 hover:bg-gray-100"
-            }`}
-          >
-            <Users size={18} className="mr-2" />
-            Students
-          </Link>
-          <Link
-            to="/faculty/feedback"
-            className={`flex items-center px-3 py-2 rounded-md transition-colors ${
-              isActive("/faculty/feedback")
-                ? "bg-blue-50 text-blue-600"
-                : "text-gray-700 hover:bg-gray-100"
-            }`}
-          >
-            <MessageSquare size={18} className="mr-2" />
-            Feedback
-          </Link>
-          <Link
-            to="/faculty/evaluations"
-            className={`flex items-center px-3 py-2 rounded-md transition-colors ${
-              isActive("/faculty/evaluations")
-                ? "bg-blue-50 text-blue-600"
-                : "text-gray-700 hover:bg-gray-100"
-            }`}
-          >
-            <Award size={18} className="mr-2" />
-            Evaluations
-          </Link>
-        </div>
-
-        <div className="flex items-center">
-          <div className="relative mr-3">
-            <span className="absolute top-0 right-0 -mt-1 -mr-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">3</span>
-            <button className="p-2 text-gray-500 hover:text-gray-700">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-              </svg>
-            </button>
-          </div>
+    <nav className="fixed top-0 left-0 w-full z-50 bg-[#FFF2F2] shadow-[6px_6px_12px_#e6d6d6,-6px_-6px_12px_#ffffff]">
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
           <div className="flex items-center">
             <img
-              src="/api/placeholder/40/40"
-              alt="Faculty Profile"
-              className="h-9 w-9 rounded-full object-cover border-2 border-blue-500"
+              src="/game-development.png"
+              alt="Logo"
+              className="h-12 w-auto"
             />
-            <div className="ml-2">
-              <p className="text-sm font-medium text-gray-800">Prof. Johnson</p>
-              <p className="text-xs text-gray-500">Faculty Coordinator</p>
+            <Link
+              to="/faculty/dashboard"
+              className="text-2xl font-bold text-gray-800 ml-2"
+            >
+              InnovateHub
+            </Link>
+          </div>
+
+          {/* Center Navigation */}
+          <div className="hidden md:flex space-x-4 absolute left-1/2 transform -translate-x-1/2">
+            {navItems.map(({ to, icon: Icon, label }) => (
+              <Link
+                key={to}
+                to={to}
+                className={`px-3 py-2 rounded-lg flex items-center transition-all duration-300 ${
+                  location.pathname === to
+                    ? "bg-[#A9B5DF] text-white"
+                    : "text-gray-800 hover:bg-[#A9B5DF] hover:text-white"
+                }`}
+              >
+                <Icon size={20} className="mr-2" />
+                {label}
+              </Link>
+            ))}
+          </div>
+
+          {/* Profile Section */}
+          <div className="flex items-center space-x-4">
+            {loading ? (
+              <div className="h-10 w-10 rounded-full bg-gray-200 animate-pulse" />
+            ) : (
+              <div className="relative">
+                <button
+                  onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                  className="flex items-center space-x-3 focus:outline-none"
+                >
+                  <div className="flex flex-col items-end">
+                    <span className="text-sm font-medium text-gray-700">
+                      {facultyProfile.name}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      {facultyProfile.role}
+                    </span>
+                  </div>
+                  <img
+                    src={facultyProfile.avatar}
+                    alt="Profile"
+                    className="h-12 w-12 rounded-full object-cover border-2 border-[#A9B5DF] shadow"
+                    onError={(e) => (e.target.src = "/placeholder.svg")}
+                  />
+                </button>
+
+                {isProfileDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-10">
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-[#A9B5DF] hover:text-white"
+                    >
+                      <LogOut className="mr-2" size={16} />
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Mobile Toggle */}
+            <div className="md:hidden">
+              <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="text-gray-800 hover:text-[#A9B5DF] p-2 rounded-lg shadow"
+              >
+                {isOpen ? <X size={24} /> : <Menu size={24} />}
+              </button>
             </div>
           </div>
         </div>
+
+        {/* Mobile Navigation */}
+        {isOpen && (
+          <div className="md:hidden mt-2 bg-[#FFF2F2] rounded-lg shadow px-2 pt-2 pb-3 space-y-1">
+            {navItems.map(({ to, icon: Icon, label }) => (
+              <Link
+                key={to}
+                to={to}
+                className={`block px-3 py-2 rounded-lg flex items-center ${
+                  location.pathname === to
+                    ? "bg-[#A9B5DF] text-white"
+                    : "text-gray-800 hover:bg-[#A9B5DF] hover:text-white"
+                }`}
+              >
+                <Icon className="mr-2" size={20} />
+                {label}
+              </Link>
+            ))}
+            <button
+              onClick={handleLogout}
+              className="w-full text-left text-gray-800 hover:bg-[#A9B5DF] hover:text-white block px-3 py-2 rounded-lg flex items-center"
+            >
+              <LogOut className="mr-2" size={20} />
+              Logout
+            </button>
+          </div>
+        )}
       </div>
     </nav>
   );

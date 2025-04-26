@@ -4,6 +4,8 @@ const ProjectSchema = new mongoose.Schema(
   {
     title: { type: String, required: true },
 
+    mentorName: { type: String, required: true },
+
     readMe: { type: String, required: true },
 
     githubRepoUrl: { type: String, required: true },

@@ -5,6 +5,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import {checkForAuthentication,restrictTo} from "./middleware/authMiddleware.js";
 import studentRoute from "./routes/studentRoute.js";
+import facultyRoute from "./routes/facultyRoute.js";
 import path from "path";
 import { fileURLToPath } from 'url'
 import Project from "./models/project.js";
@@ -14,10 +15,12 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import SYSTEM_PROMPT from "./sysPrompts.js";
 
 
+
 const app = express();
 const PORT = 9000;
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
+// connectMongodb("mongodb+srv://darrendsa04:daru%40123@cluster0.r5a2s.mongodb.net/InnovateHub?retryWrites=true&w=majority&appName=Cluster0")
 connectMongodb("mongodb://localhost:27017/innovateHUB")
 .then((e)=>console.log("mongodb connected"));
 
@@ -43,8 +46,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 app.use("/user", userRoute);
 app.use("/student",checkForAuthentication, restrictTo(["student"]), studentRoute);
 app.use("/admin", checkForAuthentication, restrictTo(["admin"]), adminRoute);
-
-// app.use("/faculty", checkForAuthentication, restrictTo(["faculty"]), facultyRoute);
+app.use("/faculty", checkForAuthentication, restrictTo(["faculty"]), facultyRoute);
 
 
 

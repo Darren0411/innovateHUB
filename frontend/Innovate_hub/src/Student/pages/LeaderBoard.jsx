@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { Search, ArrowUp, ArrowDown, Minus, User } from "lucide-react"
-import StudentNavbar from "../StudendNavbar"
+import StudentNavbar from "../StudendNavbar";
+import AdminNavbar from "../../Components/Admin-Navbar";
 import axios from "axios"
 
 const Leaderboard = () => {
@@ -10,27 +11,31 @@ const Leaderboard = () => {
   const [topStudents, setTopStudents] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [user, setUser] = useState(null) 
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchUserAndData = async () => {
       try {
         setLoading(true)
         setError(null)
-        
+
+        // Step 1: Get logged-in user
+        const userRes = await axios.get("http://localhost:9000/auth/me", { withCredentials: true })
+        setUser(userRes.data.user)
+
+        // Step 2: Fetch leaderboard data
         const response = await axios.get("http://localhost:9000/leaderboard")
-        
+
         if (!response.data || !response.data.success) {
           throw new Error(response.data?.message || "Failed to fetch leaderboard data")
         }
 
-        // Process projects - calculate score if not already calculated
         const processedProjects = response.data.projects.map(project => ({
           ...project,
           score: project.score || (project.rating || 0) * 0.5 + (project.likes || 0) * 0.3 + (project.views || 0) * 0.2,
           change: project.change || 0
         })).sort((a, b) => b.score - a.score)
 
-        // Process students - aggregate their project stats
         const studentStats = {}
         processedProjects.forEach(project => {
           if (project.creator) {
@@ -51,12 +56,11 @@ const Leaderboard = () => {
           }
         })
 
-        // Convert to array and sort by total score
         const processedStudents = Object.values(studentStats)
           .sort((a, b) => b.totalScore - a.totalScore)
-          .slice(0, 15) // Top 15 students
+          .slice(0, 15)
 
-        setTopProjects(processedProjects.slice(0, 3)) // Only keep top 3 projects
+        setTopProjects(processedProjects.slice(0, 3))
         setTopStudents(processedStudents)
       } catch (error) {
         console.error("Error fetching leaderboard data:", error)
@@ -66,13 +70,15 @@ const Leaderboard = () => {
       }
     }
 
-    fetchData()
+    fetchUserAndData()
   }, [])
+
+  const Navbar = user?.role === "student" ? StudentNavbar : AdminNavbar
 
   if (error) {
     return (
       <div className="min-h-screen bg-[#FFF2F2]">
-        <StudentNavbar />
+        {user && <Navbar />}
         <div className="pt-20 pb-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
             <strong>Error:</strong> {error}
@@ -81,10 +87,9 @@ const Leaderboard = () => {
       </div>
     )
   }
-
   return (
     <div className="min-h-screen bg-[#FFF2F2]">
-      <StudentNavbar />
+      {user && <Navbar />}
 
       <div className="pt-20 pb-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">

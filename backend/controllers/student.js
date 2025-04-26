@@ -15,6 +15,7 @@ async function createProject(req, res) {
   try {
     const {
       title,
+      mentorName,
       readMe,
       githubRepoUrl,
       deployedUrl = "",
@@ -34,6 +35,7 @@ async function createProject(req, res) {
     // Create the new project document
     const project = new Project({
       title,
+      mentorName,
       readMe,
       githubRepoUrl,
       deployedUrl,

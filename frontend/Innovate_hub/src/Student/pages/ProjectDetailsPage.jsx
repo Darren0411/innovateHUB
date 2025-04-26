@@ -19,17 +19,16 @@ const ProjectDetailsPage = () => {
   const [loading, setLoading] = useState(true);
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
+  const [showIframe, setShowIframe] = useState(false); // for iframe toggle
 
-  // Load liked status from localStorage on component mount
   useEffect(() => {
     const likedProjects = JSON.parse(localStorage.getItem('likedProjects') || '{}');
     setLiked(!!likedProjects[id]);
   }, [id]);
 
-  // Save liked status to localStorage when it changes
   useEffect(() => {
     if (liked !== null) {
-      const likedProjects = JSON.parse(localStorage.getItem('likedProjects'))|| {};
+      const likedProjects = JSON.parse(localStorage.getItem('likedProjects')) || {};
       likedProjects[id] = liked;
       localStorage.setItem('likedProjects', JSON.stringify(likedProjects));
     }
@@ -55,7 +54,6 @@ const ProjectDetailsPage = () => {
 
   const handleLike = async () => {
     try {
-      // Optimistic UI update
       const newLikeCount = liked ? likeCount - 1 : likeCount + 1;
       setLikeCount(newLikeCount);
       setLiked(!liked);
@@ -66,7 +64,6 @@ const ProjectDetailsPage = () => {
         { withCredentials: true }
       );
 
-      // Update the local project data
       setData(prev => ({
         ...prev,
         project: {
@@ -76,7 +73,6 @@ const ProjectDetailsPage = () => {
       }));
     } catch (error) {
       console.error("Failed to like project:", error);
-      // Revert on error
       setLikeCount(prev => liked ? prev + 1 : prev - 1);
       setLiked(prev => !prev);
     }
@@ -104,7 +100,6 @@ const ProjectDetailsPage = () => {
     <div className="min-h-screen bg-gray-50 pt-16">
       <StudentNavbar />
       <div className="max-w-6xl mx-auto p-6">
-        {/* Project Header with Creator Info */}
         <div className="flex flex-col md:flex-row gap-8 mb-8">
           <div className="md:w-2/3">
             <div className="flex items-center justify-between mb-4">
@@ -124,7 +119,6 @@ const ProjectDetailsPage = () => {
               </span>
             </div>
 
-            {/* Creator Profile Section */}
             {user && (
               <div className="flex items-center mb-6">
                 <Link
@@ -135,10 +129,7 @@ const ProjectDetailsPage = () => {
                     <img
                       src={
                         user.ProfileUrl
-                          ? `http://localhost:9000${user.ProfileUrl.replace(
-                              /\\/g,
-                              "/"
-                            )}`
+                          ? `http://localhost:9000${user.ProfileUrl.replace(/\\/g, "/")}`
                           : "/default-avatar.png"
                       }
                       alt={user.name}
@@ -147,7 +138,6 @@ const ProjectDetailsPage = () => {
                         e.target.src = "/default-avatar.png";
                       }}
                     />
-
                     <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5">
                       <User className="h-3 w-3 text-[#A9B5DF]" />
                     </div>
@@ -160,15 +150,11 @@ const ProjectDetailsPage = () => {
               </div>
             )}
 
-            {/* Project Image */}
             <div className="rounded-xl overflow-hidden mb-6 border border-gray-200">
               <img
                 src={
                   project.projectImage
-                    ? `http://localhost:9000/${project.projectImage.replace(
-                        /\\/g,
-                        "/"
-                      )}`
+                    ? `http://localhost:9000/${project.projectImage.replace(/\\/g, "/")}`
                     : "/project-placeholder.jpg"
                 }
                 alt={project.title}
@@ -179,7 +165,6 @@ const ProjectDetailsPage = () => {
               />
             </div>
 
-            {/* Project Stats */}
             <div className="flex items-center space-x-6 mb-6 text-sm text-gray-600">
               <div className="flex items-center">
                 <Eye className="h-4 w-4 mr-2" />
@@ -209,23 +194,32 @@ const ProjectDetailsPage = () => {
               )}
             </div>
 
-            {/* View Project Button - Only shown if deployedUrl exists */}
+            {/* Toggle View Project iframe */}
             {project.deployedUrl && (
               <div className="mb-6">
-                <a
-                  href={project.deployedUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  onClick={() => setShowIframe(!showIframe)}
                   className="inline-flex items-center px-4 py-2 bg-[#A9B5DF] text-white rounded-md hover:bg-[#8f9fd1] transition-colors"
                 >
                   <ExternalLink className="h-4 w-4 mr-2" />
-                  View Project
-                </a>
+                  {showIframe ? "Hide Project" : "View Project"}
+                </button>
+              </div>
+            )}
+
+            {/* Iframe to preview deployed project */}
+            {showIframe && (
+              <div className="w-full h-[600px] mt-4 border border-gray-300 rounded-lg overflow-hidden">
+                <iframe
+                  src={project.deployedUrl}
+                  title="Project Preview"
+                  className="w-full h-full"
+                  frameBorder="0"
+                />
               </div>
             )}
           </div>
 
-          {/* Sidebar with Project Details */}
           <div className="md:w-1/3">
             <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
               <h3 className="text-lg font-semibold mb-4 text-gray-800">
@@ -234,18 +228,14 @@ const ProjectDetailsPage = () => {
 
               <div className="space-y-4">
                 <div>
-                  <h4 className="text-sm font-medium text-gray-500">
-                    Category
-                  </h4>
+                  <h4 className="text-sm font-medium text-gray-500">Category</h4>
                   <p className="text-gray-800">
                     {project.category || "Not specified"}
                   </p>
                 </div>
 
                 <div>
-                  <h4 className="text-sm font-medium text-gray-500">
-                    Tech Stack
-                  </h4>
+                  <h4 className="text-sm font-medium text-gray-500">Tech Stack</h4>
                   <div className="flex flex-wrap gap-2 mt-1">
                     {project.techStack?.length > 0 ? (
                       project.techStack.map((tech, idx) => (
@@ -263,9 +253,7 @@ const ProjectDetailsPage = () => {
                 </div>
 
                 <div>
-                  <h4 className="text-sm font-medium text-gray-500">
-                    Mapped SDGs
-                  </h4>
+                  <h4 className="text-sm font-medium text-gray-500">Mapped SDGs</h4>
                   <div className="flex flex-wrap gap-2 mt-1">
                     {project.sdgMapping?.length > 0 ? (
                       project.sdgMapping.map((sdg, idx) => (
@@ -282,11 +270,8 @@ const ProjectDetailsPage = () => {
                   </div>
                 </div>
 
-
                 <div>
-                  <h4 className="text-sm font-medium text-gray-500">
-                    Created At
-                  </h4>
+                  <h4 className="text-sm font-medium text-gray-500">Created At</h4>
                   <p className="text-gray-800">
                     {new Date(project.createdAt).toLocaleDateString("en-US", {
                       year: "numeric",
@@ -300,7 +285,6 @@ const ProjectDetailsPage = () => {
           </div>
         </div>
 
-        {/* Project Description */}
         <div className="bg-white rounded-xl shadow-sm p-8 mb-8 border border-gray-200">
           <h2 className="text-2xl font-semibold mb-6 text-gray-800">
             Project Description
@@ -310,7 +294,6 @@ const ProjectDetailsPage = () => {
           </div>
         </div>
 
-        {/* Feedback Section */}
         {project.feedback?.length > 0 && (
           <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-200">
             <h2 className="text-2xl font-semibold mb-6 text-gray-800">

@@ -22,7 +22,7 @@ async function handleUserSignup(req, res) {
     const profilePic = req.file
       ? `/uploads/images/${req.file.filename}`
       : "/uploads/images/default.png";
-    console.log("profilePic", profilePic);
+
 
     // Validate required fields
     if (!name || !email || !password) {

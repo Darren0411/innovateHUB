@@ -27,6 +27,11 @@ import ProjectDetailsPage from "./Student/pages/ProjectDetailsPage";
 import AdminDashboard from './Student/pages/AdminDashboard';
 import AdminUsers from './Student/pages/AdminUsers';
 
+//import faculty dashboard
+import FacultyDashboard from './Student/pages/FacultyDashboard';
+import FacultyStudents from './Student/pages/FacultyStudents';
+import FacultyFeedback from './Student/pages/FacultyFeedback';
+
 // Import ProtectedRoute
 import ProtectedRoute from './Components/ProtectedRoute';
 import Unauthorized from './Components/Unauthorized'; // <-- Create this page
@@ -127,38 +132,51 @@ function App() {
               </ProtectedRoute>
             }
             />
-          {/* <Route
-            path="/admin/notifications"
+
+           {/* Protected Faculty Routes */}
+           <Route
+            path="/faculty/dashboard"
             element={
-              <ProtectedRoute roles={["admin"]}>
-                <AdminNotifications />
+              <ProtectedRoute roles={["faculty"]}>
+                <FacultyDashboard/>
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/admin/reports"
+               <Route
+            path="/faculty/students"
             element={
-              <ProtectedRoute roles={["admin"]}>
-                <AdminReports />
+              <ProtectedRoute roles={["faculty"]}>
+                <FacultyStudents/>
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/admin/sdg-tracking"
+           
+           <Route
+            path="/faculty/allFeedbacks"
             element={
-              <ProtectedRoute roles={["admin"]}>
-                <AdminSDGTracking />
+              <ProtectedRoute roles={["faculty"]}>
+                <FacultyFeedback/>
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/admin/settings"
+
+           {/* <Route
+            path="/admin/users"
             element={
               <ProtectedRoute roles={["admin"]}>
-                <AdminSettings />
+                <AdminUsers />
               </ProtectedRoute>
             }
-          /> */}
+          />
+            <Route
+            path="/admin/pending-projects"
+            element={
+              <ProtectedRoute roles={["admin"]}>
+               <PendingProjects/>
+              </ProtectedRoute>
+            }
+            /> */}
+
 
           {/* Future Protected Routes for Faculty/Admin can go here */}
         </Routes>

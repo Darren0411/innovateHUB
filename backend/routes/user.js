@@ -25,9 +25,6 @@ router.post('/signup', upload.single('profilePic'), handleUserSignup);
 
 
 //login
-router.get("/login", async (req, res) => {
-  res.send("login page");
-});
 router.post("/login",handleUserLogin);
 
 

@@ -47,6 +47,8 @@ router.get("/logout", (req, res) => {
   return res.status(200).json({ message: 'Logout successful' });
 });
 
+
+
 // Fetch all projects created by a particular student
 router.get("/projects", getProjects);
 router.get("/projects/:id", getProjectById);

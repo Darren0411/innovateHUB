@@ -11,6 +11,7 @@ const UploadProject = () => {
   const [previewImage, setPreviewImage] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
+    mentorName: '',
     readMe: '',
     githubRepoUrl: '',
     deployedUrl: '',
@@ -204,6 +205,7 @@ const UploadProject = () => {
       // Create FormData object for file upload
       const formDataToSend = new FormData();
       formDataToSend.append('title', formData.title);
+      formDataToSend.append('mentorName', formData.mentorName);
       formDataToSend.append('readMe', formData.readMe);
       formDataToSend.append('githubRepoUrl', formData.githubRepoUrl);
       formDataToSend.append('deployedUrl', formData.deployedUrl);
@@ -259,6 +261,24 @@ const UploadProject = () => {
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               placeholder="Enter a descriptive title for your project"
             />
+          </div>
+          <div>
+            <label htmlFor="mentorName" className="block text-sm font-medium text-gray-700">
+              Mentor Name*
+            </label>
+            <input
+              type="text"
+              id="mentorName"
+              name="mentorName"
+              required
+              value={formData.mentorName}
+              onChange={handleInputChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              placeholder="Enter your mentor's name"
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              Please enter the name of the mentor who guided your project
+            </p>
           </div>
 
           {/* Project Category (same as before) */}
