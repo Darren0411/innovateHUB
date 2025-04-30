@@ -125,3 +125,10 @@ Open a Pull Request
 
 📜 License
 This project is licensed under the MIT License.
+
+
+[Presentation link](https://www.canva.com/design/DAGmFv-2szY/fd3J8nce7f8Owf8Tk2NJ_w/edit?utm_content=DAGmFv-2szY&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
+
+[Demo video link](https://www.loom.com/share/0f186bee017049569d403780da3ec1c0?sid=3a8f1026-8d99-45c2-bdf0-791fbdaed06d)
+
+
