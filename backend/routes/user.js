@@ -17,9 +17,6 @@ const upload = multer({ storage: storage });
 
 
 //signup
-router.get("/signup", (req, res) => {
-    res.send("signup page ");
-  });
 router.post('/signup', upload.single('profilePic'), handleUserSignup);
 
 

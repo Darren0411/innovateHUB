@@ -161,7 +161,7 @@ async function handleUserLogin(req, res) {
     if (user.role === "admin") {
       if (password !== user.password) {
         return res.status(401).json({ message: "Invalid credentials." });
-      } else {
+      } else {   
         // Generate JWT token
         const token = jwt.sign(
           { userId: user._id, role: user.role, name: user.name },

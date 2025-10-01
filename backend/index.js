@@ -22,7 +22,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 // connectMongodb("mongodb+srv://darrendsa04:daru%40123@cluster0.r5a2s.mongodb.net/InnovateHub?retryWrites=true&w=majority&appName=Cluster0")
 connectMongodb("mongodb://localhost:27017/innovateHUB")
-.then((e)=>console.log("mongodb connected"));
+.then((e)=>console.log("mongodb connected:"));
 
 
 //Gemini API Key
