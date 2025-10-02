@@ -13,6 +13,8 @@ import User from "./models/user.js";
 import adminRoute from "./routes/adminRoute.js"
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import SYSTEM_PROMPT from "./sysPrompts.js";
+import dotenv from "dotenv";
+dotenv.config();
 
 
 
@@ -20,13 +22,12 @@ const app = express();
 const PORT = 9000;
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
-// connectMongodb("mongodb+srv://darrendsa04:daru%40123@cluster0.r5a2s.mongodb.net/InnovateHub?retryWrites=true&w=majority&appName=Cluster0")
 connectMongodb("mongodb://localhost:27017/innovateHUB")
 .then((e)=>console.log("mongodb connected:"));
 
 
 //Gemini API Key
-const genAI = new GoogleGenerativeAI("AIzaSyBaxGYUSZqeGOrEj_mPQ94kCuuQ58YBn28");
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 
 app.use(express.json());
 app.use(cookieParser());
